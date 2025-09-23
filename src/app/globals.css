@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --foreground-rgb: 241, 245, 249;
+  --background-start-rgb: 30, 41, 59;
+  --background-end-rgb: 71, 85, 105;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--background-start-rgb)) 0%,
+    rgb(51, 65, 85) 50%,
+    rgb(var(--background-end-rgb)) 100%
+  );
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* Scroll personalizado para todo el sistema */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 10px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(30, 41, 59, 0.3);
+}
+
+/* Scroll para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 rgba(30, 41, 59, 0.3);
+}
+
+/* Clases personalizadas para diferentes tipos de scroll */
+.custom-scroll-dark::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.custom-scroll-dark::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #475569, #334155);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.custom-scroll-dark::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #64748b, #475569);
+  box-shadow: 0 0 8px rgba(71, 85, 105, 0.4);
+}
+
+.custom-scroll-green::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.custom-scroll-green::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

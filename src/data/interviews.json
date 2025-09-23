@@ -1,0 +1,46 @@
+{
+  "interviews": [
+    {
+      "title": "Desarrollador Backend",
+      "description": "Buscamos desarrollador con 3+ años de experiencia en Python y Node.js",
+      "status": "Activa",
+      "questions": [
+        "Describa un proyecto complejo en Python o Node.js donde haya tenido que diseñar la arquitectura backend desde cero o realizar mejoras significativas. ¿Qué desafíos técnicos enfrentó y cómo los resolvió?",
+        "Imagine que una API crítica en producción comienza a tener tiempos de respuesta excepcionalmente lentos intermitentemente. ¿Cuál sería su proceso sistemático para diagnosticar y resolver este problema?",
+        "Cuente sobre una vez que tuvo que trabajar en equipo con desarrolladores frontend u otros stakeholders. ¿Cómo manejó los requisitos cambiantes o los desacuerdos técnicos para asegurar el éxito del proyecto?",
+        "¿Cómo aborda la gestión de dependencias, el control de versiones y el empaquetado en sus proyectos? Describa su experiencia con herramientas específicas como pip, npm, virtualenv o Docker.",
+        "¿Qué estrategias ha implementado para garantizar la seguridad, escalabilidad y mantenibilidad del código en aplicaciones backend que ha desarrollado? Mencione ejemplos concretos relacionados con Python o Node.js."
+      ],
+      "id": "mf8ogprucura7871xlq",
+      "createdAt": "2025-09-06T19:49:25.242Z"
+    },
+    {
+      "title": "Desarrollador Frontend",
+      "description": "requiero un programador que domine tecnologias de react con node",
+      "status": "Activa",
+      "questions": [
+        "Describa un proyecto complejo en React donde haya implementado un estado manejado globalmente (usando Context API, Redux u otra librería). ¿Qué desafíos técnicos enfrentó y cómo los resolvió?",
+        "Imagine que un componente de React está renderizando más lento de lo esperado. ¿Cuál sería su proceso para identificar la causa raíz del cuello de botella y qué estrategias aplicaría para optimizar el rendimiento?",
+        "Como desarrollador Frontend, a menudo debe colaborar con backenders que usan Node.js. Cuente una experiencia específica en la que tuvo que integrar una API RESTful o GraphQL desde el frontend. ¿Cómo manejó posibles discrepancias o errores en la respuesta?",
+        "Hábleme de una vez que recibió retroalimentación negativa sobre el código que escribió o un error que se le escapó en producción. ¿Cómo manejó esa situación y qué aprendió de ella para mejorar su proceso de desarrollo?",
+        "¿Podría explicar la diferencia fundamental entre el renderizado del lado del cliente (CSR) y el renderizado del lado del servidor (SSR)? Basándose en su experiencia, ¿en qué tipo de proyecto elegiría Next.js sobre Create React App y por qué?"
+      ],
+      "id": "mfg2ue3xk4r3iksuhgd",
+      "createdAt": "2025-09-12T00:06:21.165Z"
+    },
+    {
+      "title": "Programador Backend",
+      "description": "Busco un candidato que domine Python enfocado en la automatización",
+      "status": "Activa",
+      "questions": [
+        "Describa un proyecto de automatización complejo que haya implementado en Python, explicando los desafíos técnicos específicos que enfrentó y cómo los resolvió.",
+        "¿Cómo ha utilizado bibliotecas específicas de Python para automatización (como Selenium, BeautifulSoup, o APScheduler) para mejorar procesos o resolver problemas concretos?",
+        "Cuénteme sobre una vez que tuvo que automatizar un proceso manual existente: ¿cómo identificó la oportunidad, convenció a los stakeholders y midió el impacto después de la implementación?",
+        "Al desarrollar scripts de automatización, ¿qué prácticas sigue para garantizar que su código sea mantenible, escalable y maneje adecuadamente los errores?",
+        "Imagine que ha automatizado un proceso crítico que falla inesperadamente en producción. ¿Cuál sería su protocolo de actuación para diagnosticar, resolver y prevenir futuras incidencias?"
+      ],
+      "id": "mfhwxfw5cck3jnmxr1",
+      "createdAt": "2025-09-13T06:56:18.101Z"
+    }
+  ]
+}
