@@ -18,6 +18,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('interview');
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { toasts, showToast, removeToast } = useToast();
 
   const handleLoginError = (message: string) => {
@@ -95,12 +96,13 @@ export default function Home() {
           items={sidebarItems}
           onItemClick={setActiveTab}
           onLogout={handleLogout}
+          onCollapseChange={setIsSidebarCollapsed}
           userEmail={currentUser.email}
           userName={currentUser.name}
           userLastName={currentUser.lastName}
         />
         
-        <main className="ml-72 bg-gradient-to-br from-slate-800 to-slate-700 p-8 min-h-screen overflow-y-auto custom-scroll-green">
+        <main className={`${isSidebarCollapsed ? 'ml-20' : 'ml-80'} bg-gradient-to-br from-slate-800 to-slate-700 p-8 min-h-screen overflow-y-auto custom-scroll-green transition-all duration-300`}>
           {activeTab === 'interview' && (
             <InterviewPanel onShowToast={showToast} />
           )}
@@ -161,12 +163,13 @@ export default function Home() {
           items={sidebarItems}
           onItemClick={setActiveTab}
           onLogout={handleLogout}
+          onCollapseChange={setIsSidebarCollapsed}
           userEmail={currentUser.email}
           userName={currentUser.name}
           userLastName={currentUser.lastName}
         />
         
-        <main className="ml-72 bg-gradient-to-br from-slate-800 to-slate-700 p-8 min-h-screen overflow-y-auto custom-scroll-green">
+        <main className={`${isSidebarCollapsed ? 'ml-20' : 'ml-80'} bg-gradient-to-br from-slate-800 to-slate-700 p-8 min-h-screen overflow-y-auto custom-scroll-green transition-all duration-300`}>
           <RecruiterPanel activeTab={activeTab} onShowToast={showToast} />
         </main>
 
