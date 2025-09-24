@@ -49,8 +49,8 @@ export const Sidebar = ({ title, subtitle, icon, items, onItemClick, onLogout, o
     : title.substring(0, 2);
 
   return (
-    <aside className={`bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl h-screen flex flex-col shadow-2xl fixed left-0 top-0 z-20 border-r border-slate-600/30 transition-all duration-300 ease-in-out overflow-hidden ${
-      isCollapsed ? 'w-20' : 'w-80'
+    <aside className={`bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl h-screen flex flex-col shadow-2xl fixed left-0 top-0 z-20 border-r border-slate-600/30 transition-all duration-300 ease-in-out ${
+      isCollapsed ? 'w-20 overflow-hidden' : 'w-80 overflow-y-auto'
     }`}>
       
       {/* Decorative gradient overlay */}
@@ -58,10 +58,14 @@ export const Sidebar = ({ title, subtitle, icon, items, onItemClick, onLogout, o
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
       
       {/* Header con botón de colapso */}
-      <div className="relative p-6 border-b border-slate-600/30 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
+      <div className={`relative border-b border-slate-600/30 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 ${
+        isCollapsed ? 'p-4' : 'p-6'
+      }`}>
         <button
           onClick={toggleSidebar}
-          className="absolute top-4 right-4 w-8 h-8 bg-slate-700/50 hover:bg-indigo-600/50 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 group border border-slate-600/30 hover:border-indigo-500/50"
+          className={`absolute w-8 h-8 bg-slate-700/50 hover:bg-indigo-600/50 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 group border border-slate-600/30 hover:border-indigo-500/50 ${
+            isCollapsed ? 'top-2 right-2' : 'top-4 right-4'
+          }`}
         >
           {isCollapsed ? (
             <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-300 transition-colors" />
@@ -73,10 +77,10 @@ export const Sidebar = ({ title, subtitle, icon, items, onItemClick, onLogout, o
         <div className={`flex items-center transition-all duration-300 ${isCollapsed ? 'justify-center' : 'space-x-4'}`}>
           {/* Avatar/Icon */}
           <div className={`bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 border-white/20 hover:border-white/40 hover:shadow-xl hover:shadow-indigo-500/25 ${
-            isCollapsed ? 'w-12 h-12' : 'w-16 h-16'
+            isCollapsed ? 'w-10 h-10' : 'w-16 h-16'
           }`}>
             {isCollapsed ? (
-              <span className="text-white font-bold text-sm">{initials.toUpperCase()}</span>
+              <span className="text-white font-bold text-xs">{initials.toUpperCase()}</span>
             ) : (
               <div className="text-white">
                 {icon}
@@ -102,7 +106,7 @@ export const Sidebar = ({ title, subtitle, icon, items, onItemClick, onLogout, o
       </div>
       
       {/* Navegación */}
-      <nav className="flex-1 p-4 overflow-y-auto custom-scroll-dark">
+      <nav className={`flex-1 overflow-hidden ${isCollapsed ? 'p-2' : 'p-4 overflow-y-auto custom-scroll-dark'}`}>
         {!isCollapsed && (
           <div className="mb-4">
             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2">
@@ -110,13 +114,13 @@ export const Sidebar = ({ title, subtitle, icon, items, onItemClick, onLogout, o
             </h3>
           </div>
         )}
-        <ul className="space-y-2">
+        <ul className={`${isCollapsed ? 'space-y-1' : 'space-y-2'}`}>
           {items.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => onItemClick(item.id)}
                 className={`w-full text-left rounded-xl transition-all duration-300 flex items-center group relative ${
-                  isCollapsed ? 'p-3 justify-center' : 'px-4 py-4 space-x-3'
+                  isCollapsed ? 'p-2 justify-center' : 'px-4 py-4 space-x-3'
                 } ${
                   item.isActive 
                     ? 'bg-gradient-to-r from-indigo-600/80 to-purple-600/80 text-white shadow-lg backdrop-blur-sm border border-indigo-500/30 shadow-indigo-500/25' 
@@ -160,11 +164,11 @@ export const Sidebar = ({ title, subtitle, icon, items, onItemClick, onLogout, o
       </nav>
       
       {/* Botón de logout */}
-      <div className="p-4 border-t border-slate-600/30">
+      <div className={`border-t border-slate-600/30 ${isCollapsed ? 'p-2' : 'p-4'}`}>
         <button
           onClick={onLogout}
           className={`w-full bg-gradient-to-r from-red-500/80 to-pink-500/80 hover:from-red-600/90 hover:to-pink-600/90 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg flex items-center group backdrop-blur-sm border border-red-500/30 hover:shadow-red-500/25 hover:shadow-lg hover:scale-105 ${
-            isCollapsed ? 'p-3 justify-center' : 'py-3.5 px-4 space-x-2 justify-center'
+            isCollapsed ? 'p-2 justify-center' : 'py-3.5 px-4 space-x-2 justify-center'
           }`}
           title={isCollapsed ? 'Cerrar Sesión' : undefined}
         >

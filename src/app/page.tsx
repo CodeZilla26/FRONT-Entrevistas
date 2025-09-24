@@ -21,13 +21,15 @@ export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { toasts, showToast, removeToast } = useToast();
 
-  // Establecer tab inicial según el tipo de usuario
+  // Establecer tab inicial según el tipo de usuario y resetear sidebar
   useEffect(() => {
     if (currentUser?.type === 'reclutador') {
       setActiveTab('participants');
     } else if (currentUser?.type === 'postulante') {
       setActiveTab('interview');
     }
+    // Resetear sidebar al cambiar de usuario
+    setIsSidebarCollapsed(false);
   }, [currentUser]);
 
   const handleLoginError = (message: string) => {
@@ -42,6 +44,7 @@ export default function Home() {
       console.error('Logout error:', err);
     } finally {
       setActiveTab('interview');
+      setIsSidebarCollapsed(false); // Resetear sidebar al cerrar sesión
     }
   };
 
