@@ -106,22 +106,7 @@ export default function Home() {
           )}
           
           {activeTab === 'status' && (
-            <div className="w-full h-full flex flex-col items-center justify-center text-center">
-              <h2 className="text-3xl font-bold mb-6 text-slate-100">Estado de Postulación</h2>
-              <div className="bg-slate-800/95 backdrop-blur-lg border border-slate-600/30 shadow-2xl p-8 rounded-xl w-full max-w-2xl">
-                <div className="p-6 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl border-l-4 border-blue-400">
-                  <div className="flex items-center space-x-3">
-                    <svg className="w-8 h-8 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                    </svg>
-                    <div>
-                      <p className="font-semibold text-xl text-blue-300">Entrevista Disponible</p>
-                      <p className="text-sm text-blue-200 mt-1">Ve al tab "Iniciar Entrevista" para comenzar tu entrevista asignada.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ParticipantInterviewStatus onShowToast={showToast} />
           )}
         </main>
 

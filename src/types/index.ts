@@ -98,3 +98,22 @@ export interface PracticanteInterview {
   active: boolean;
   questions: PracticanteInterviewQuestion[];
 }
+
+export interface CompletedInterview {
+  id: string;
+  score: number;
+  state: string;
+  date: string;
+  userId: string;
+  userName: string;
+  interviewId: string;
+  interviewTitle: string;
+  s3KeyPath: string;
+  duration: number;
+  answers: Array<{
+    questionText: string;
+    responseText: string;
+    points: number;
+    description: string;
+  }>;
+}

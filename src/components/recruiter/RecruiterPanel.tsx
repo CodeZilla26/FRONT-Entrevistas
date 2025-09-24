@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, FileText, BarChart3, Calendar, Clock } from 'lucide-react';
-import { Participant, Interview, AvailableInterview, AssignedInterview } from '@/types';
+import { BarChart3, Users, Calendar, Clock, FileText } from 'lucide-react';
+import { Participant, Interview, AvailableInterview, AssignedInterview, CompletedInterview } from '@/types';
 import { INTERVIEWS_API_BASE, PARTICIPANTS_LIST_URL, PARTICIPANTS_CREATE_URL } from '@/config';
 import { useAuth } from '@/context/AuthContext';
 
@@ -18,6 +18,7 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [availableInterviews, setAvailableInterviews] = useState<AvailableInterview[]>([]);
   const [assignedInterviews, setAssignedInterviews] = useState<AssignedInterview[]>([]);
+  const [completedInterviews, setCompletedInterviews] = useState<CompletedInterview[]>([]);
   const [newParticipant, setNewParticipant] = useState({ name: '', lastName: '', email: '', password: '' });
   const [newInterview, setNewInterview] = useState({ title: '', description: '', status: 'Activa' as 'Activa' | 'Borrador' | 'Inactiva' });
   const [generatedQuestions, setGeneratedQuestions] = useState<string[]>([]);
@@ -49,6 +50,7 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
     setInterviews([]);
     setAvailableInterviews([]);
     setAssignedInterviews([]);
+    setCompletedInterviews([]);
     setGeneratedQuestions([]);
     setGeneratedQuestionObjs([]);
     setQuestionStatus([]);
@@ -166,6 +168,12 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
           console.log('[Entrevistas] Datos:', mapped);
         }
         
+        if (activeTab === 'results') {
+          // Cargar entrevistas completadas para el tab de resultados
+          console.log('[Resultados] Cargando entrevistas completadas...');
+          await loadCompletedInterviews();
+        }
+        
       } catch (e) {
         console.error('Error cargando datos para tab:', activeTab, e);
         onShowToast(`No se pudieron cargar datos para ${activeTab}`, 'error');
@@ -244,6 +252,41 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
       }));
       setAvailableInterviews(fallback);
       console.log('[Entrevistas Disponibles] Usando fallback:', fallback.length, 'entrevistas');
+    }
+  };
+
+  // Función para cargar entrevistas completadas
+  const loadCompletedInterviews = async () => {
+    try {
+      console.log('[Entrevistas Completadas] Cargando desde API...');
+      
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/userinterview/findAll`;
+      console.log('[Entrevistas Completadas] URL:', url);
+      
+      const res = await getAuthFetch(url, {
+        method: 'GET'
+      });
+
+      console.log('[Entrevistas Completadas] Respuesta status:', res.status);
+
+      if (res.ok) {
+        const data: CompletedInterview[] = await res.json();
+        console.log('[Entrevistas Completadas] Datos recibidos:', data);
+        
+        setCompletedInterviews(data);
+        console.log('[Entrevistas Completadas] Cargadas exitosamente:', data.length, 'entrevistas');
+        
+        return data;
+      } else {
+        const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+        console.error('[Entrevistas Completadas] Error en respuesta:', errorData);
+        onShowToast(`Error cargando entrevistas completadas: ${errorData.message || res.statusText}`, 'error');
+        return [];
+      }
+    } catch (error) {
+      console.error('[Entrevistas Completadas] Error:', error);
+      onShowToast('Error de conexión al cargar entrevistas completadas', 'error');
+      return [];
     }
   };
 
@@ -1635,9 +1678,11 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
   }
 
   if (activeTab === 'results') {
-    const highScoreInterviews = interviews.filter(i => i.score && i.score >= 8);
-    const mediumScoreInterviews = interviews.filter(i => i.score && i.score >= 6 && i.score < 8);
-    const lowScoreInterviews = interviews.filter(i => i.score && i.score < 6);
+    const totalInterviews = completedInterviews.length;
+    const averageScore = totalInterviews > 0 ? completedInterviews.reduce((acc, i) => acc + i.score, 0) / totalInterviews : 0;
+    const excellentCount = completedInterviews.filter(i => i.score >= 80).length;
+    const goodCount = completedInterviews.filter(i => i.score >= 60 && i.score < 80).length;
+    const needsImprovementCount = completedInterviews.filter(i => i.score < 60).length;
     
     return (
       <div className="w-full h-full p-8">
@@ -1645,7 +1690,7 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold text-slate-100">Dashboard de Resultados</h2>
-            <p className="text-slate-400 mt-1">Analiza el rendimiento y resultados de las entrevistas</p>
+            <p className="text-slate-400 mt-1">Analiza el rendimiento y resultados de las entrevistas completadas</p>
           </div>
           <div className="flex items-center space-x-3">
             <button className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
@@ -1657,183 +1702,198 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
           </div>
         </div>
 
-        {/* Performance Overview Cards */}
+        {/* Enhanced Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 p-6 rounded-xl border border-emerald-500/20 backdrop-blur-lg">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 p-6 rounded-xl border border-indigo-500/20 backdrop-blur-lg">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-emerald-300 text-sm font-medium">Excelentes</p>
-                <p className="text-3xl font-bold text-emerald-400">{highScoreInterviews.length}</p>
-                <p className="text-emerald-200 text-xs mt-1">Puntuación 8+</p>
+                <p className="text-indigo-300 text-sm font-medium">Total Entrevistas</p>
+                <p className="text-3xl font-bold text-indigo-100">{totalInterviews}</p>
+              </div>
+              <div className="p-3 bg-indigo-500/20 rounded-lg">
+                <Users className="w-6 h-6 text-indigo-400" />
+              </div>
+            </div>
+            <div className="text-xs text-indigo-200">Completadas exitosamente</div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 p-6 rounded-xl border border-emerald-500/20 backdrop-blur-lg">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-emerald-300 text-sm font-medium">Excelentes (80+)</p>
+                <p className="text-3xl font-bold text-emerald-100">{excellentCount}</p>
               </div>
               <div className="p-3 bg-emerald-500/20 rounded-lg">
-                <svg className="w-6 h-6 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                </svg>
+                <BarChart3 className="w-6 h-6 text-emerald-400" />
               </div>
+            </div>
+            <div className="text-xs text-emerald-200">
+              {totalInterviews > 0 ? ((excellentCount / totalInterviews) * 100).toFixed(1) : 0}% del total
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 p-6 rounded-xl border border-yellow-500/20 backdrop-blur-lg">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-br from-amber-500/20 to-amber-600/10 p-6 rounded-xl border border-amber-500/20 backdrop-blur-lg">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-yellow-300 text-sm font-medium">Promedio</p>
-                <p className="text-3xl font-bold text-yellow-400">{mediumScoreInterviews.length}</p>
-                <p className="text-yellow-200 text-xs mt-1">Puntuación 6-8</p>
+                <p className="text-amber-300 text-sm font-medium">Puntuación Media</p>
+                <p className="text-3xl font-bold text-amber-100">{averageScore.toFixed(1)}</p>
               </div>
-              <div className="p-3 bg-yellow-500/20 rounded-lg">
-                <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+              <div className="p-3 bg-amber-500/20 rounded-lg">
+                <svg className="w-6 h-6 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"/>
                 </svg>
               </div>
             </div>
+            <div className="text-xs text-amber-200">de 100 puntos</div>
           </div>
           
-          <div className="bg-gradient-to-br from-red-500/20 to-red-600/10 p-6 rounded-xl border border-red-500/20 backdrop-blur-lg">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 p-6 rounded-xl border border-purple-500/20 backdrop-blur-lg">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-red-300 text-sm font-medium">Necesita Mejora</p>
-                <p className="text-3xl font-bold text-red-400">{lowScoreInterviews.length}</p>
-                <p className="text-red-200 text-xs mt-1">Puntuación &lt;6</p>
-              </div>
-              <div className="p-3 bg-red-500/20 rounded-lg">
-                <svg className="w-6 h-6 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
-                </svg>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 p-6 rounded-xl border border-blue-500/20 backdrop-blur-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-300 text-sm font-medium">Promedio General</p>
-                <p className="text-3xl font-bold text-blue-400">
-                  {interviews.length > 0 ? (interviews.reduce((acc, i) => acc + (i.score || 0), 0) / interviews.length).toFixed(1) : '0.0'}
+                <p className="text-purple-300 text-sm font-medium">Duración Promedio</p>
+                <p className="text-2xl font-bold text-purple-100">
+                  {totalInterviews > 0 ? 
+                    Math.floor(completedInterviews.reduce((acc, i) => acc + i.duration, 0) / totalInterviews / 60) : 0}min
                 </p>
-                <p className="text-blue-200 text-xs mt-1">De 10 puntos</p>
               </div>
-              <div className="p-3 bg-blue-500/20 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-blue-400" />
+              <div className="p-3 bg-purple-500/20 rounded-lg">
+                <Clock className="w-6 h-6 text-purple-400" />
               </div>
             </div>
+            <div className="text-xs text-purple-200">Tiempo por entrevista</div>
           </div>
         </div>
 
         {/* Results List */}
-        <div className="bg-slate-800/95 backdrop-blur-lg border border-slate-600/30 shadow-2xl p-6 rounded-xl">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-slate-100 flex items-center space-x-2">
-              <BarChart3 className="w-6 h-6 text-indigo-400" />
-              <span>Resultados Detallados ({interviews.length})</span>
-            </h3>
-            <div className="flex items-center space-x-4">
-              <select className="bg-slate-700 border border-slate-500 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option>Todos los resultados</option>
-                <option>Puntuación alta (8+)</option>
-                <option>Puntuación media (6-8)</option>
-                <option>Puntuación baja (&lt;6)</option>
-              </select>
-              <select className="bg-slate-700 border border-slate-500 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option>Ordenar por fecha</option>
-                <option>Ordenar por puntuación</option>
-                <option>Ordenar por posición</option>
-              </select>
-            </div>
-          </div>
+        <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-600/30">
+          <h3 className="text-xl font-semibold text-slate-100 mb-6 flex items-center space-x-2">
+            <BarChart3 className="w-6 h-6 text-indigo-400" />
+            <span>Entrevistas Completadas ({totalInterviews})</span>
+          </h3>
           
-          {interviews.length === 0 ? (
+          {completedInterviews.length === 0 ? (
             <div className="text-center py-12">
               <BarChart3 className="w-16 h-16 text-slate-500 mx-auto mb-4" />
               <p className="text-slate-400 text-lg mb-2">No hay resultados disponibles</p>
               <p className="text-slate-500 text-sm">Los resultados aparecerán aquí una vez que se completen las entrevistas</p>
             </div>
           ) : (
-            <div className="grid gap-6">
-              {interviews.map((interview, index) => (
+            <div className="space-y-4">
+              {completedInterviews.map((interview, index) => (
                 <div
                   key={interview.id}
-                  className="group relative bg-gradient-to-r from-slate-700/50 to-slate-600/30 p-6 rounded-xl border border-slate-600/20 hover:border-slate-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/20"
+                  className="bg-gradient-to-r from-slate-800/50 to-slate-700/30 p-6 rounded-xl border border-slate-600/20 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-900/10"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4 flex-1">
+                      {/* Score Badge */}
                       <div className="relative">
-                        <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-white font-bold text-xl ${
-                          interview.score && interview.score >= 8 ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
-                          interview.score && interview.score >= 6 ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
-                          'bg-gradient-to-br from-red-500 to-pink-600'
+                        <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg ${
+                          interview.score >= 80 ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' :
+                          interview.score >= 60 ? 'bg-gradient-to-br from-amber-500 to-amber-600' :
+                          'bg-gradient-to-br from-red-500 to-red-600'
                         }`}>
-                          {interview.score || 'N/A'}
+                          {interview.score}
                         </div>
-                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-slate-700 ${
-                          interview.score && interview.score >= 8 ? 'bg-emerald-400' :
-                          interview.score && interview.score >= 6 ? 'bg-yellow-400' : 'bg-red-400'
+                        <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full border-2 border-slate-800 ${
+                          interview.score >= 80 ? 'bg-emerald-300' :
+                          interview.score >= 60 ? 'bg-amber-300' : 'bg-red-300'
                         }`}></div>
                       </div>
                       
+                      {/* Interview Details */}
                       <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-slate-100 font-bold text-xl">{interview.title || interview.position}</h4>
-                          <span className={`px-4 py-2 rounded-full text-sm font-medium border ${
-                            interview.score && interview.score >= 8 
-                              ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20' :
-                            interview.score && interview.score >= 6
-                              ? 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20' :
-                              interview.score ? 'bg-red-400/10 text-red-400 border-red-400/20' :
-                              'bg-gray-400/10 text-gray-400 border-gray-400/20'
-                          }`}>
-                            {interview.score && interview.score >= 8 ? 'Excelente' : 
-                             interview.score && interview.score >= 6 ? 'Promedio' : 
-                             interview.score ? 'Necesita Mejora' : 'Sin Calificar'}
-                          </span>
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h4 className="text-xl font-bold text-slate-100 mb-1">
+                              {interview.interviewTitle}
+                            </h4>
+                            <div className="flex items-center space-x-2 text-sm">
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                interview.score >= 80 
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                                interview.score >= 60
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                                  'bg-red-500/20 text-red-300 border border-red-500/30'
+                              }`}>
+                                {interview.score >= 80 ? 'Excelente' : 
+                                 interview.score >= 60 ? 'Bueno' : 
+                                 'Necesita Mejora'}
+                              </span>
+                              <span className="text-slate-400">•</span>
+                              <span className="text-slate-400 capitalize">{interview.state.toLowerCase()}</span>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                          <p className="text-slate-400 text-sm flex items-center space-x-2">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
-                            </svg>
-                            <span><strong>Postulante:</strong> {interview.applicant || 'No asignado'}</span>
-                          </p>
-                          {interview.date && (
-                            <p className="text-slate-400 text-sm flex items-center space-x-2">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
-                              </svg>
-                              <span><strong>Fecha:</strong> {interview.date}</span>
-                            </p>
-                          )}
+                        {/* Participant Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div className="flex items-center space-x-2 text-slate-300">
+                            <Users className="w-4 h-4 text-indigo-400" />
+                            <span className="font-medium">{interview.userName}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-slate-300">
+                            <Calendar className="w-4 h-4 text-emerald-400" />
+                            <span>{new Date(interview.date).toLocaleDateString('es-ES', { 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-slate-300">
+                            <Clock className="w-4 h-4 text-amber-400" />
+                            <span>{Math.floor(interview.duration / 60)}:{(interview.duration % 60).toString().padStart(2, '0')} min</span>
+                          </div>
                         </div>
                         
-                        <div className="bg-slate-800/60 p-4 rounded-lg border border-slate-600/20">
-                          <p className="font-semibold text-slate-200 mb-2 flex items-center space-x-2">
-                            <svg className="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd"/>
-                            </svg>
-                            <span>Resumen del Desempeño</span>
-                          </p>
-                          <p className="text-slate-300 text-sm leading-relaxed">{interview.summary}</p>
+                        {/* Answers Summary */}
+                        <div className="bg-slate-800/40 p-4 rounded-lg border border-slate-600/20">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-slate-300">
+                              Resumen de Respuestas ({interview.answers.length} preguntas)
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              Promedio: {interview.answers.length > 0 ? 
+                                (interview.answers.reduce((acc, ans) => acc + ans.points, 0) / interview.answers.length).toFixed(1) : 
+                                '0'} pts
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {interview.answers.slice(0, 3).map((answer, idx) => (
+                              <div key={idx} className="flex items-center space-x-2 bg-slate-700/30 px-3 py-1 rounded-full">
+                                <span className="text-xs text-slate-400">P{idx + 1}:</span>
+                                <span className={`text-xs font-medium ${
+                                  answer.points >= 80 ? 'text-emerald-400' :
+                                  answer.points >= 60 ? 'text-amber-400' : 'text-red-400'
+                                }`}>
+                                  {answer.points}pts
+                                </span>
+                              </div>
+                            ))}
+                            {interview.answers.length > 3 && (
+                              <div className="flex items-center space-x-1 text-xs text-slate-500">
+                                <span>+{interview.answers.length - 3} más</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
-                      <button className="p-3 bg-indigo-600/20 text-indigo-300 rounded-lg hover:bg-indigo-600/30 transition-colors">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
-                        </svg>
-                      </button>
-                      <button className="p-3 bg-green-600/20 text-green-300 rounded-lg hover:bg-green-600/30 transition-colors">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/>
-                        </svg>
-                      </button>
+                    {/* Score Display */}
+                    <div className="text-right ml-6">
+                      <p className="text-3xl font-bold text-slate-100">{interview.score}</p>
+                      <p className="text-sm text-slate-400">de 100</p>
+                      <div className="mt-2 w-16 h-2 bg-slate-600 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            interview.score >= 80 ? 'bg-emerald-500' :
+                            interview.score >= 60 ? 'bg-amber-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${interview.score}%` }}
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="absolute top-4 right-4 text-xs text-slate-500 font-mono">
-                    #{String(index + 1).padStart(3, '0')}
                   </div>
                 </div>
               ))}
