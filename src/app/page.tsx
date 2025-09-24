@@ -21,6 +21,15 @@ export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { toasts, showToast, removeToast } = useToast();
 
+  // Establecer tab inicial según el tipo de usuario
+  useEffect(() => {
+    if (currentUser?.type === 'reclutador') {
+      setActiveTab('participants');
+    } else if (currentUser?.type === 'postulante') {
+      setActiveTab('interview');
+    }
+  }, [currentUser]);
+
   const handleLoginError = (message: string) => {
     showToast(message, 'error');
   };
