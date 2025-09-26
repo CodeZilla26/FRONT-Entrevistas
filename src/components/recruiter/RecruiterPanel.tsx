@@ -34,6 +34,9 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
   const [selectedInterviewForAssignment, setSelectedInterviewForAssignment] = useState<string>('');
   const [isAssigningInterview, setIsAssigningInterview] = useState(false);
   const [isLoadingTabData, setIsLoadingTabData] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [selectedInterviewForVideo, setSelectedInterviewForVideo] = useState<CompletedInterview | null>(null);
+  const [isLoadingVideo, setIsLoadingVideo] = useState(false);
 
   // Estados para filtros del dashboard
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,19 +55,18 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
     setAssignedInterviews([]);
     setCompletedInterviews([]);
     setGeneratedQuestions([]);
-    setGeneratedQuestionObjs([]);
     setQuestionStatus([]);
     
     // Limpiar TODOS los estados de UI
     setSelectedParticipant(null);
     setSelectedInterviewForAssignment('');
-    setShowAssignInterviewModal(false);
+    setSelectedInterviewForVideo(null);
     setShowAddParticipantModal(false);
     setShowCreateInterviewModal(false);
-    setShowQuestions(false);
+    setShowAssignInterviewModal(false);
+    setShowVideoModal(false);
     setIsAssigningInterview(false);
-    setIsGeneratingQuestions(false);
-    setIsCreatingInterview(false);
+    setIsLoadingVideo(false);
     
     // Limpiar TODOS los formularios
     setNewParticipant({ name: '', lastName: '', email: '', password: '' });
@@ -260,6 +262,7 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
     try {
       console.log('[Entrevistas Completadas] Cargando desde API...');
       
+      // Cargar todas las entrevistas completadas de todos los usuarios
       const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/userinterview/findAll`;
       console.log('[Entrevistas Completadas] URL:', url);
       
@@ -272,6 +275,7 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
       if (res.ok) {
         const data: CompletedInterview[] = await res.json();
         console.log('[Entrevistas Completadas] Datos recibidos:', data);
+        console.log('[Entrevistas Completadas] Videos disponibles:', data.filter(d => d.s3KeyPath).length);
         
         setCompletedInterviews(data);
         console.log('[Entrevistas Completadas] Cargadas exitosamente:', data.length, 'entrevistas');
@@ -288,6 +292,70 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
       onShowToast('Error de conexión al cargar entrevistas completadas', 'error');
       return [];
     }
+  };
+
+  // Función para cargar entrevista específica por userId (con video)
+  const loadInterviewByUserId = async (userId: string): Promise<CompletedInterview | null> => {
+    try {
+      console.log('[Entrevista Usuario] Cargando para userId:', userId);
+      
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/userinterview/findByUserId?userId=${userId}`;
+      console.log('[Entrevista Usuario] URL:', url);
+      
+      const res = await getAuthFetch(url, {
+        method: 'GET'
+      });
+
+      console.log('[Entrevista Usuario] Respuesta status:', res.status);
+
+      if (res.ok) {
+        const data: CompletedInterview = await res.json();
+        console.log('[Entrevista Usuario] Datos recibidos:', data);
+        console.log('[Entrevista Usuario] Video disponible:', !!data.s3KeyPath);
+        
+        return data;
+      } else {
+        const errorData = await res.json().catch(() => ({ message: 'Error desconocido' }));
+        console.error('[Entrevista Usuario] Error en respuesta:', errorData);
+        onShowToast(`Error cargando entrevista del usuario: ${errorData.message || res.statusText}`, 'error');
+        return null;
+      }
+    } catch (error) {
+      console.error('[Entrevista Usuario] Error:', error);
+      onShowToast('Error de conexión al cargar entrevista del usuario', 'error');
+      return null;
+    }
+  };
+
+  // Función para abrir modal de video
+  const handleViewVideo = async (interview: CompletedInterview) => {
+    if (!interview.s3KeyPath) {
+      onShowToast('No hay video disponible para esta entrevista', 'info');
+      return;
+    }
+
+    setIsLoadingVideo(true);
+    setSelectedInterviewForVideo(interview);
+    setShowVideoModal(true);
+    
+    // Si necesitas cargar datos adicionales del usuario, puedes usar loadInterviewByUserId
+    try {
+      const detailedInterview = await loadInterviewByUserId(interview.userId);
+      if (detailedInterview) {
+        setSelectedInterviewForVideo(detailedInterview);
+      }
+    } catch (error) {
+      console.error('[Video Modal] Error cargando detalles:', error);
+    } finally {
+      setIsLoadingVideo(false);
+    }
+  };
+
+  // Función para cerrar modal de video
+  const handleCloseVideoModal = () => {
+    setShowVideoModal(false);
+    setSelectedInterviewForVideo(null);
+    setIsLoadingVideo(false);
   };
 
   // Función para cargar asignaciones desde localStorage
@@ -1880,18 +1948,41 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
                       </div>
                     </div>
                     
-                    {/* Score Display */}
-                    <div className="text-right ml-6">
-                      <p className="text-3xl font-bold text-slate-100">{interview.score}</p>
-                      <p className="text-sm text-slate-400">de 100</p>
-                      <div className="mt-2 w-16 h-2 bg-slate-600 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            interview.score >= 80 ? 'bg-emerald-500' :
-                            interview.score >= 60 ? 'bg-amber-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${interview.score}%` }}
-                        ></div>
+                    {/* Actions and Score Display */}
+                    <div className="text-right ml-6 flex flex-col items-end space-y-3">
+                      {/* Video Button */}
+                      {interview.s3KeyPath ? (
+                        <button
+                          onClick={() => handleViewVideo(interview)}
+                          className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/>
+                          </svg>
+                          <span>Ver Video</span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center space-x-2 bg-slate-700/50 text-slate-400 py-2 px-4 rounded-lg">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
+                          </svg>
+                          <span className="text-xs">Sin Video</span>
+                        </div>
+                      )}
+                      
+                      {/* Score Display */}
+                      <div className="text-right">
+                        <p className="text-3xl font-bold text-slate-100">{interview.score}</p>
+                        <p className="text-sm text-slate-400">de 100</p>
+                        <div className="mt-2 w-16 h-2 bg-slate-600 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              interview.score >= 80 ? 'bg-emerald-500' :
+                              interview.score >= 60 ? 'bg-amber-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${interview.score}%` }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1899,6 +1990,146 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
               ))}
             </div>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // Modal de Video
+  if (showVideoModal && selectedInterviewForVideo) {
+    return (
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-slate-800 border border-slate-600/30 rounded-2xl w-full max-w-6xl mx-4 shadow-2xl max-h-[90vh] overflow-hidden">
+          {/* Header del Modal */}
+          <div className="flex items-center justify-between p-6 border-b border-slate-600/30 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/>
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-slate-100">Video de Entrevista</h3>
+                <p className="text-slate-400 text-sm">{selectedInterviewForVideo.interviewTitle}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleCloseVideoModal}
+              className="w-8 h-8 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110"
+            >
+              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Contenido del Modal */}
+          <div className="p-6">
+            {isLoadingVideo ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-3 text-slate-300">Cargando video...</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Video Player */}
+                <div className="lg:col-span-2">
+                  <div className="bg-black rounded-xl overflow-hidden shadow-2xl">
+                    <video
+                      controls
+                      className="w-full h-auto max-h-96"
+                      poster="/api/placeholder/800/450"
+                    >
+                      <source src={selectedInterviewForVideo.s3KeyPath} type="video/webm" />
+                      <source src={selectedInterviewForVideo.s3KeyPath} type="video/mp4" />
+                      Tu navegador no soporta la reproducción de video.
+                    </video>
+                  </div>
+                  
+                  {/* Video Info */}
+                  <div className="mt-4 bg-slate-700/30 p-4 rounded-xl">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <p className="text-2xl font-bold text-slate-100">{selectedInterviewForVideo.score}</p>
+                        <p className="text-xs text-slate-400">Puntuación</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-slate-100">
+                          {Math.floor(selectedInterviewForVideo.duration / 60)}:{(selectedInterviewForVideo.duration % 60).toString().padStart(2, '0')}
+                        </p>
+                        <p className="text-xs text-slate-400">Duración</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-slate-100">{selectedInterviewForVideo.answers.length}</p>
+                        <p className="text-xs text-slate-400">Preguntas</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Interview Details */}
+                <div className="space-y-4">
+                  {/* Participant Info */}
+                  <div className="bg-slate-700/30 p-4 rounded-xl">
+                    <h4 className="text-lg font-semibold text-slate-100 mb-3">Información del Candidato</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-indigo-400" />
+                        <span className="text-slate-300">{selectedInterviewForVideo.userName}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 text-emerald-400" />
+                        <span className="text-slate-300">
+                          {new Date(selectedInterviewForVideo.date).toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          selectedInterviewForVideo.score >= 80 
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                          selectedInterviewForVideo.score >= 60
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                            'bg-red-500/20 text-red-300 border border-red-500/30'
+                        }`}>
+                          {selectedInterviewForVideo.score >= 80 ? 'Excelente' : 
+                           selectedInterviewForVideo.score >= 60 ? 'Bueno' : 
+                           'Necesita Mejora'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Answers Summary */}
+                  <div className="bg-slate-700/30 p-4 rounded-xl max-h-96 overflow-y-auto custom-scroll-dark">
+                    <h4 className="text-lg font-semibold text-slate-100 mb-3">Respuestas Detalladas</h4>
+                    <div className="space-y-3">
+                      {selectedInterviewForVideo.answers.map((answer, index) => (
+                        <div key={index} className="bg-slate-800/40 p-3 rounded-lg border border-slate-600/20">
+                          <div className="flex items-start justify-between mb-2">
+                            <span className="text-sm font-medium text-slate-300">Pregunta {index + 1}</span>
+                            <span className={`text-sm font-bold ${
+                              answer.points >= 80 ? 'text-emerald-400' :
+                              answer.points >= 60 ? 'text-amber-400' : 'text-red-400'
+                            }`}>
+                              {answer.points}pts
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 mb-2 line-clamp-2">{answer.questionText}</p>
+                          {answer.description && (
+                            <p className="text-xs text-slate-500 italic">{answer.description}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

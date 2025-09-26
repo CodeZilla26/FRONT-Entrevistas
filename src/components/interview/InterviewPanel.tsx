@@ -827,12 +827,45 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
   // Mostrar estado de carga
   if (isLoadingQuestions) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-center">
-        <h2 className="text-3xl font-bold mb-6 text-slate-100">Cargando Entrevista</h2>
-        <div className="bg-slate-800/95 backdrop-blur-lg border border-slate-600/30 shadow-2xl p-8 rounded-xl w-full max-w-2xl">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-            <p className="text-slate-300">Verificando entrevistas asignadas...</p>
+      <div className="w-full h-full flex flex-col items-center justify-center text-center p-4 relative">
+        {/* Decorative gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        
+        <div className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl border border-slate-600/30 shadow-2xl p-12 w-full max-w-2xl relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+          
+          <div className="mb-6 relative z-10">
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg border-2 border-white/20 hover:border-white/40 hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-300">
+              <div className="animate-spin rounded-full h-10 w-10 border-3 border-white border-t-transparent"></div>
+            </div>
+          </div>
+          
+          <h2 className="text-3xl font-bold text-white mb-4 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent relative z-10">
+            🔍 Verificando Entrevistas
+          </h2>
+          
+          <p className="text-slate-300 text-lg mb-8 leading-relaxed relative z-10">
+            Estamos verificando si tienes entrevistas asignadas...
+          </p>
+          
+          <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 backdrop-blur-sm border border-indigo-400/20 rounded-xl p-6 relative z-10">
+            <div className="flex items-center justify-center mb-3">
+              <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg border border-indigo-400/30">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+            <p className="text-indigo-300 text-sm text-center">
+              💡 Este proceso puede tomar unos segundos mientras consultamos el servidor.
+            </p>
+            <div className="flex items-center justify-center mt-3">
+              <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></div>
+              <span className="text-xs text-indigo-400 ml-2">Conectando...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -842,27 +875,69 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
   // Mostrar error si hay
   if (questionsError) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-center">
-        <h2 className="text-3xl font-bold mb-6 text-slate-100">Estado de Entrevista</h2>
-        <div className="bg-slate-800/95 backdrop-blur-lg border border-slate-600/30 shadow-2xl p-8 rounded-xl w-full max-w-2xl">
-          <div className="p-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl border-l-4 border-yellow-400">
-            <div className="flex items-center space-x-3">
-              <svg className="w-8 h-8 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+      <div className="w-full h-full flex flex-col items-center justify-center text-center p-4 relative">
+        {/* Decorative gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5 pointer-events-none"></div>
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        
+        <div className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl border border-slate-600/30 shadow-2xl p-12 w-full max-w-2xl relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5 pointer-events-none"></div>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+          
+          <div className="mb-6 relative z-10">
+            <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg border-2 border-white/20 hover:border-white/40 hover:shadow-xl hover:shadow-amber-500/25 transition-all duration-300">
+              <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
               </svg>
-              <div>
-                <p className="font-semibold text-xl text-yellow-300">Sin Entrevista Asignada</p>
-                <p className="text-sm text-yellow-200 mt-1">{questionsError}</p>
-                <p className="text-sm text-yellow-200 mt-2">Contacta al reclutador para que te asigne una entrevista.</p>
-              </div>
             </div>
           </div>
-          <button 
-            onClick={loadQuestionsFromAPI}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-          >
-            Verificar Nuevamente
-          </button>
+          
+          <h2 className="text-3xl font-bold text-white mb-4 bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent relative z-10">
+            ⚠️ Sin Entrevista Asignada
+          </h2>
+          
+          <p className="text-slate-300 text-lg mb-4 leading-relaxed relative z-10">
+            {questionsError === 'Error de conexión' 
+              ? 'No se pudo verificar si tienes entrevistas asignadas.' 
+              : questionsError === 'No tienes entrevistas asignadas'
+              ? 'Actualmente no tienes ninguna entrevista asignada.'
+              : questionsError || 'No hay entrevistas disponibles en este momento.'
+            }
+          </p>
+          
+          <p className="text-slate-400 text-base mb-8 relative z-10">
+            📞 Contacta al reclutador para que te asigne una entrevista.
+          </p>
+          
+          <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 backdrop-blur-sm border border-amber-400/20 rounded-xl p-6 mb-6 relative z-10">
+            <div className="flex items-center justify-center mb-3">
+              <div className="w-6 h-6 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg border border-amber-400/30">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+              </div>
+            </div>
+            <p className="text-amber-300 text-sm text-center">
+              💡 El reclutador debe asignarte una entrevista antes de que puedas comenzar.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
+            <button 
+              onClick={loadQuestionsFromAPI}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-indigo-500/25 border border-indigo-500/30 backdrop-blur-sm group"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="transition-all duration-200 group-hover:scale-110">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
+                  </svg>
+                </div>
+                <span>🔄 Verificar Nuevamente</span>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -870,20 +945,45 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
 
   if (!safeQuestions.length) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-center">
-        <h2 className="text-3xl font-bold mb-6 text-slate-100">Estado de Entrevista</h2>
-        <div className="bg-slate-800/95 backdrop-blur-lg border border-slate-600/30 shadow-2xl p-8 rounded-xl w-full max-w-2xl">
-          <div className="p-6 bg-gradient-to-r from-gray-500/20 to-slate-500/20 rounded-xl border-l-4 border-gray-400">
-            <div className="flex items-center space-x-3">
-              <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+      <div className="w-full h-full flex flex-col items-center justify-center text-center p-4 relative">
+        {/* Decorative gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 via-transparent to-gray-500/5 pointer-events-none"></div>
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        
+        <div className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl border border-slate-600/30 shadow-2xl p-12 w-full max-w-2xl relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 via-transparent to-gray-500/5 pointer-events-none"></div>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-500 to-gray-500"></div>
+          
+          <div className="mb-6 relative z-10">
+            <div className="w-20 h-20 bg-gradient-to-br from-slate-600 to-gray-700 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg border-2 border-white/20 hover:border-white/40 hover:shadow-xl hover:shadow-slate-500/25 transition-all duration-300">
+              <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
               </svg>
-              <div>
-                <p className="font-semibold text-xl text-gray-300">Sin Preguntas Disponibles</p>
-                <p className="text-sm text-gray-200 mt-1">No se encontraron preguntas para la entrevista.</p>
-                <p className="text-sm text-gray-200 mt-2">Contacta al reclutador o vuelve más tarde.</p>
+            </div>
+          </div>
+          
+          <h2 className="text-3xl font-bold text-white mb-4 bg-gradient-to-r from-slate-400 to-gray-400 bg-clip-text text-transparent relative z-10">
+            📋 Estado de Entrevista
+          </h2>
+          
+          <div className="bg-gradient-to-r from-slate-500/10 to-gray-500/10 backdrop-blur-sm border border-slate-400/20 rounded-xl p-8 relative z-10">
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-8 h-8 bg-gradient-to-br from-slate-600 to-gray-700 rounded-lg flex items-center justify-center shadow-lg border border-slate-400/30">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                </svg>
               </div>
             </div>
+            <h3 className="font-semibold text-xl text-slate-200 mb-3 text-center">
+              📝 Sin Preguntas Disponibles
+            </h3>
+            <p className="text-sm text-slate-300 mb-2 text-center">
+              No se encontraron preguntas para la entrevista.
+            </p>
+            <p className="text-sm text-slate-400 text-center">
+              📞 Contacta al reclutador o vuelve más tarde.
+            </p>
           </div>
         </div>
       </div>
@@ -891,161 +991,189 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
   }
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center text-center">
-      <h2 className="text-3xl font-bold mb-8 text-slate-100">Entrevista de Reclutamiento</h2>
+    <div className="w-full h-screen max-h-screen flex flex-col relative overflow-hidden">
+      {/* Decorative gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
       
-      {/* Question Card */}
-      <div className="bg-slate-800/95 backdrop-blur-lg border border-slate-600/30 shadow-2xl p-8 rounded-xl w-full max-w-2xl mb-8">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-blue-400 font-semibold">
-              Pregunta {currentQuestionIndex + 1} de {safeQuestions.length}
-            </span>
-            <span className="text-orange-400 font-mono">
-              {Math.floor(responseTimeLeft / 60)}:{(responseTimeLeft % 60).toString().padStart(2, '0')}
+      {/* Compact Header - Fixed height */}
+      <div className="flex items-center justify-between px-4 py-1.5 bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-b border-slate-600/30 relative z-10 flex-shrink-0" style={{ height: '60px' }}>
+        <div className="flex items-center space-x-3">
+          <div className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg border border-white/20">
+            <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.894A1 1 0 0018 16V3z" clipRule="evenodd"/>
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-base font-bold text-slate-100 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+              🎬 Entrevista de Reclutamiento
+            </h1>
+          </div>
+        </div>
+        
+        {/* Question Info */}
+        <div className="flex items-center space-x-3">
+          <div className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 backdrop-blur-sm px-2 py-0.5 rounded-lg border border-indigo-500/30">
+            <span className="text-indigo-300 font-semibold text-xs">
+              📋 {currentQuestionIndex + 1}/{safeQuestions.length}
             </span>
           </div>
-          <h3 className="text-xl font-semibold text-slate-100 mb-4">
-            {safeQuestions[currentQuestionIndex]}
-          </h3>
+          <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm px-2 py-0.5 rounded-lg border border-orange-500/30">
+            <span className="text-orange-300 font-mono font-bold text-xs">
+              ⏱️ {Math.floor(responseTimeLeft / 60)}:{(responseTimeLeft % 60).toString().padStart(2, '0')}
+            </span>
+          </div>
         </div>
-
-        {/* Video Preview */}
-        <div className="mb-6">
-          <video
-            ref={videoRef}
-            className="w-full max-w-md mx-auto rounded-lg bg-slate-700"
-            autoPlay
-            muted
-            playsInline
-          />
+      </div>
+      
+      {/* Progress bar - Fixed height */}
+      <div className="px-4 py-1 bg-gradient-to-r from-slate-800/60 to-slate-900/60 backdrop-blur-sm border-b border-slate-600/20 flex-shrink-0" style={{ height: '24px' }}>
+        <div className="w-full bg-slate-700/50 rounded-full h-1 overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
+            style={{ width: `${((currentQuestionIndex + 1) / safeQuestions.length) * 100}%` }}
+          ></div>
         </div>
-
-        {/* Controles de Emergencia - Solo visible durante la entrevista */}
-        {isRecording && (
-          <div className="mb-6 p-4 bg-slate-700/50 rounded-lg border border-slate-600">
-            <h4 className="text-sm font-semibold text-slate-300 mb-3 text-center">
-              🚨 Controles de Emergencia
-            </h4>
-            <div className="flex justify-center space-x-3">
-              <button
-                onClick={stopCameraManually}
-                disabled={!isCameraActive}
-                className={`text-xs font-medium py-2 px-4 rounded-lg transition-colors flex items-center space-x-2 ${
-                  isCameraActive 
-                    ? 'bg-red-600 hover:bg-red-700 text-white' 
-                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                <div className={`w-2 h-2 rounded-full ${isCameraActive ? 'bg-green-400' : 'bg-gray-400'}`}></div>
-                <span>Detener Cámara</span>
-              </button>
-              
-              <button
-                onClick={stopAudioRecordingManually}
-                disabled={!isAudioRecording}
-                className={`text-xs font-medium py-2 px-4 rounded-lg transition-colors flex items-center space-x-2 ${
-                  isAudioRecording 
-                    ? 'bg-orange-600 hover:bg-orange-700 text-white' 
-                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                <div className={`w-2 h-2 rounded-full ${isAudioRecording ? 'bg-red-400 animate-pulse' : 'bg-gray-400'}`}></div>
-                <span>Detener Audio</span>
-              </button>
-              
-              <button
-                onClick={stopVideoRecordingManually}
-                disabled={!isVideoRecording}
-                className={`text-xs font-medium py-2 px-4 rounded-lg transition-colors flex items-center space-x-2 ${
-                  isVideoRecording 
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                <div className={`w-2 h-2 rounded-full ${isVideoRecording ? 'bg-red-400 animate-pulse' : 'bg-gray-400'}`}></div>
-                <span>Detener Video</span>
-              </button>
+      </div>
+      
+      {/* Main Content - Calculated height: screen - header(60px) - progress(24px) */}
+      <div className="flex flex-col lg:flex-row overflow-hidden" style={{ height: 'calc(100vh - 84px)' }}>
+        {/* Large Video Section */}
+        <div className="flex-1 flex flex-col p-1 overflow-hidden">
+          {/* Question Text - Fixed height */}
+          <div className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-sm rounded-lg p-2 mb-1 border border-slate-600/30 flex-shrink-0" style={{ minHeight: '48px' }}>
+            <h3 className="text-sm font-semibold text-slate-100 leading-tight text-center">
+              {safeQuestions[currentQuestionIndex]}
+            </h3>
+          </div>
+          
+          {/* Large Video - Flexible height */}
+          <div className="flex-1 bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-sm rounded-lg p-1 border border-slate-600/30 relative min-h-0 overflow-hidden">
+            <div className="flex items-center justify-center mb-1">
+              <div className="flex items-center space-x-1">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+                <span className="text-slate-300 text-xs font-medium">📹 Vista de Entrevista</span>
+              </div>
             </div>
             
-            {/* Indicadores de estado */}
-            <div className="mt-3 text-xs text-slate-400 text-center">
-              <div className="flex justify-center space-x-4">
-                <span className={`flex items-center space-x-1 ${isCameraActive ? 'text-green-400' : 'text-gray-500'}`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${isCameraActive ? 'bg-green-400' : 'bg-gray-500'}`}></div>
-                  <span>Cámara: {isCameraActive ? 'Activa' : 'Inactiva'}</span>
-                </span>
-                <span className={`flex items-center space-x-1 ${isAudioRecording ? 'text-red-400' : 'text-gray-500'}`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${isAudioRecording ? 'bg-red-400 animate-pulse' : 'bg-gray-500'}`}></div>
-                  <span>Audio: {isAudioRecording ? 'Grabando' : 'Detenido'}</span>
-                </span>
-                <span className={`flex items-center space-x-1 ${isVideoRecording ? 'text-red-400' : 'text-gray-500'}`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${isVideoRecording ? 'bg-red-400 animate-pulse' : 'bg-gray-500'}`}></div>
-                  <span>Video: {isVideoRecording ? 'Grabando' : 'Detenido'}</span>
-                </span>
+            <div className="relative w-full overflow-hidden" style={{ height: 'calc(100% - 20px)' }}>
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg border border-slate-600/30"
+                autoPlay
+                muted
+                playsInline
+              />
+              
+              {/* Recording indicator */}
+              {isRecording && (
+                <div className="absolute top-1 right-1">
+                  <div className="flex items-center space-x-1 bg-gradient-to-r from-red-500/90 to-red-600/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-full text-xs font-bold shadow-lg border border-red-400/30">
+                    <div className="w-1 h-1 bg-white rounded-full animate-pulse"></div>
+                    <span>REC</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Camera status overlay */}
+              <div className="absolute bottom-1 left-1">
+                <div className="bg-slate-800/90 backdrop-blur-sm px-1.5 py-0.5 rounded-lg border border-slate-600/30">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-green-300 text-xs font-medium">Cámara</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        )}
-
-        {/* Controls */}
-        <div className="flex justify-center space-x-4">
-          {!isRecording ? (
-            <button
-              onClick={handleStartInterview}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-xl transition-colors flex items-center space-x-2"
-            >
-              <Play className="w-5 h-5" />
-              <span>Iniciar Entrevista</span>
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={handleNextQuestion}
-                disabled={isSubmitting}
-                className={`font-semibold py-3 px-8 rounded-xl transition-colors flex items-center space-x-2 ${
-                  isSubmitting 
-                    ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'bg-blue-600 hover:bg-blue-700'
-                } text-white`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Enviando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Square className="w-5 h-5" />
-                    <span>
-                      {currentQuestionIndex === safeQuestions.length - 1 ? 'Finalizar' : 'Siguiente'}
-                    </span>
-                  </>
-                )}
-              </button>
-              
-              <button
-                onClick={() => speakQuestion(safeQuestions[currentQuestionIndex])}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center space-x-2"
-              >
-                <Volume2 className="w-5 h-5" />
-                <span>Repetir</span>
-              </button>
-            </>
-          )}
         </div>
-      </div>
 
-      {/* Status */}
-      <div className="text-slate-400 text-sm">
-        {isRecording ? (
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-            <span>Grabando respuesta...</span>
+        
+        {/* Compact Controls Sidebar */}
+        <div className="lg:w-60 flex flex-col p-1 bg-gradient-to-b from-slate-800/40 to-slate-900/40 backdrop-blur-sm border-l border-slate-600/30 overflow-hidden">
+          {/* Main Controls */}
+          <div className="bg-gradient-to-r from-slate-700/60 to-slate-800/60 backdrop-blur-sm rounded-lg p-1.5 border border-slate-600/30 mb-1 flex-1 overflow-hidden">
+            <div className="flex items-center justify-center mb-1.5">
+              <div className="flex items-center space-x-1">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+                <span className="text-slate-300 text-xs font-medium">🎮 Controles</span>
+              </div>
+            </div>
+            
+            <div className="space-y-1.5">
+              {!isRecording ? (
+                <button
+                  onClick={handleStartInterview}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-2.5 rounded-lg transition-all duration-300 flex items-center justify-center space-x-1.5 shadow-lg hover:shadow-green-500/25 hover:scale-105 border border-green-500/30 backdrop-blur-sm group"
+                >
+                  <div className="transition-all duration-200 group-hover:scale-110">
+                    <Play className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-xs">🎬 Iniciar</span>
+                </button>
+              ) : (
+                <div className="space-y-1.5">
+                  <button
+                    onClick={handleNextQuestion}
+                    disabled={isSubmitting}
+                    className={`w-full font-semibold py-2 px-2.5 rounded-lg transition-all duration-300 flex items-center justify-center space-x-1.5 shadow-lg border backdrop-blur-sm group ${
+                      isSubmitting 
+                        ? 'bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed border-gray-500/30' 
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/25 hover:scale-105 border-blue-500/30'
+                    } text-white`}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs">Enviando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="transition-all duration-200 group-hover:scale-110">
+                          <Square className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs">
+                          {currentQuestionIndex === safeQuestions.length - 1 ? '✅ Finalizar' : '➡️ Siguiente'}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => speakQuestion(safeQuestions[currentQuestionIndex])}
+                    className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white font-semibold py-2 px-2.5 rounded-lg transition-all duration-300 flex items-center justify-center space-x-1.5 shadow-lg hover:shadow-purple-500/25 hover:scale-105 border border-purple-500/30 backdrop-blur-sm group"
+                  >
+                    <div className="transition-all duration-200 group-hover:scale-110">
+                      <Volume2 className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-xs">🔊 Repetir</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        ) : (
-          <span>Presiona "Iniciar Entrevista" para comenzar</span>
-        )}
+          
+          {/* Status - Fixed at bottom */}
+          <div className="bg-gradient-to-r from-slate-700/60 to-slate-800/60 backdrop-blur-sm rounded-lg px-1.5 py-1 border border-slate-600/30 flex-shrink-0">
+            {isRecording ? (
+              <div className="flex flex-col items-center space-y-0.5">
+                <div className="flex items-center space-x-1">
+                  <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+                  <span className="text-red-300 font-medium text-xs">🎤️ Grabando</span>
+                </div>
+                <div className="flex space-x-0.5">
+                  <div className="w-0.5 h-0.5 bg-red-400 rounded-full animate-bounce"></div>
+                  <div className="w-0.5 h-0.5 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-0.5 h-0.5 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center space-x-1">
+                <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-slate-300 font-medium text-xs">💡 Listo</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

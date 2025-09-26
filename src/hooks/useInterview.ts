@@ -95,11 +95,13 @@ export const useInterview = () => {
         
         switch (res.status) {
           case 400:
-            // Usuario ya completó la entrevista
+            // Usuario ya completó la entrevista o no tiene entrevista asignada
             if (errorData.message?.includes('already did the interview')) {
               errorMessage = 'INTERVIEW_ALREADY_COMPLETED';
+            } else if (errorData.message?.includes('no interview assigned')) {
+              errorMessage = 'No tienes entrevistas asignadas';
             } else {
-              errorMessage = errorData.message || 'Solicitud inválida';
+              errorMessage = errorData.message || 'No tienes entrevistas asignadas';
             }
             break;
           case 404:
@@ -112,7 +114,7 @@ export const useInterview = () => {
             errorMessage = 'Sin permisos';
             break;
           default:
-            errorMessage = errorData.message || 'Error desconocido';
+            errorMessage = errorData.message || 'No tienes entrevistas asignadas';
         }
 
         setQuestionsError(errorMessage);
@@ -132,7 +134,11 @@ export const useInterview = () => {
       if (errorMessage.includes('User already did the interview')) {
         console.log('[useInterview] ✅ Detectado: Usuario ya completó la entrevista');
         setQuestionsError('INTERVIEW_ALREADY_COMPLETED');
+      } else if (errorMessage.includes('no interview assigned')) {
+        console.log('[useInterview] ✅ Detectado: Usuario no tiene entrevista asignada');
+        setQuestionsError('No tienes entrevistas asignadas');
       } else {
+        console.log('[useInterview] ❌ Error de conexión real');
         setQuestionsError('Error de conexión');
       }
       return false;
@@ -369,13 +375,36 @@ export const useInterview = () => {
     console.log('[finishInterview] ✅ Entrevista completada - NO se guarda en localStorage (se resetea al refrescar)');
   }, [state.mediaRecorder, state.stream, stopTimer, stopSpeaking, currentInterviewData, user?.id, getAuthFetch]);
 
-  // Cargar preguntas automáticamente al inicializar
+  // Cargar preguntas automáticamente al inicializar (solo una vez)
   useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      console.log('[useInterview] Usuario autenticado detectado, cargando preguntas...');
-      loadQuestionsFromAPI();
+    if (isAuthenticated && user?.id && !isLoadingQuestions && !apiQuestions.length && !questionsError) {
+      console.log('[useInterview] Usuario autenticado detectado, cargando preguntas automáticamente...');
+      console.log('[useInterview] 🔍 Verificando condiciones:', {
+        isAuthenticated,
+        hasUserId: !!user?.id,
+        isLoading: isLoadingQuestions,
+        hasQuestions: apiQuestions.length > 0,
+        hasError: !!questionsError
+      });
+      
+      // Usar timeout para evitar llamadas duplicadas por React StrictMode
+      const timeoutId = setTimeout(() => {
+        // Verificar nuevamente las condiciones después del timeout
+        if (isAuthenticated && user?.id && !isLoadingQuestions && !apiQuestions.length && !questionsError) {
+          console.log('[useInterview] 🚀 Ejecutando carga de preguntas después de timeout...');
+          loadQuestionsFromAPI();
+        } else {
+          console.log('[useInterview] ⏭️ Saltando carga - condiciones cambiaron durante timeout');
+        }
+      }, 100);
+      
+      // Cleanup del timeout
+      return () => {
+        console.log('[useInterview] 🧹 Limpiando timeout de carga de preguntas');
+        clearTimeout(timeoutId);
+      };
     }
-  }, [isAuthenticated, user?.id, loadQuestionsFromAPI]);
+  }, [isAuthenticated, user?.id]);
 
   // ❌ ELIMINADO: No cargar estado completado desde localStorage
   // useEffect(() => {

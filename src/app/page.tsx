@@ -84,46 +84,10 @@ export default function Home() {
   }
 
   if (currentUser.type === 'postulante') {
-    const sidebarItems = [
-      {
-        id: 'interview',
-        label: 'Iniciar Entrevista',
-        icon: <Play size={20} />,
-        isActive: activeTab === 'interview'
-      },
-      {
-        id: 'status',
-        label: 'Estado de Postulación',
-        icon: <FileText size={20} />,
-        isActive: activeTab === 'status'
-      }
-    ];
-
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600">
-        <Sidebar
-          title="Panel Postulante"
-          subtitle="Postulante"
-          icon={<Eye className="w-8 h-8 text-white" />}
-          items={sidebarItems}
-          onItemClick={setActiveTab}
-          onLogout={handleLogout}
-          onCollapseChange={setIsSidebarCollapsed}
-          userEmail={currentUser.email}
-          userName={currentUser.name}
-          userLastName={currentUser.lastName}
-        />
+        <ParticipantInterviewStatus onShowToast={showToast} />
         
-        <main className={`${isSidebarCollapsed ? 'ml-20' : 'ml-80'} bg-gradient-to-br from-slate-800 to-slate-700 p-8 min-h-screen overflow-y-auto custom-scroll-green transition-all duration-300`}>
-          {activeTab === 'interview' && (
-            <InterviewPanel onShowToast={showToast} />
-          )}
-          
-          {activeTab === 'status' && (
-            <ParticipantInterviewStatus onShowToast={showToast} />
-          )}
-        </main>
-
         <ToastContainer toasts={toasts} onRemove={removeToast} />
         
         <Modal
