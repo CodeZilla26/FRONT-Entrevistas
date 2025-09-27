@@ -15,16 +15,30 @@ export const useParticipantDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Cargar resultados de la entrevista del participante
-  const loadInterviewResults = useCallback(async () => {
-    console.log('[useParticipantDashboard] INICIO - loadInterviewResults ejecutado');
-    console.log('[useParticipantDashboard] Estado:', { isAuthenticated, userId: user?.id });
+  const loadInterviewResults = useCallback(async (force = false) => {
+    const requestId = Date.now();
+    console.log(`[useParticipantDashboard #${requestId}] INICIO - loadInterviewResults ejecutado`, { force });
+    console.log(`[useParticipantDashboard #${requestId}] Estado:`, { isAuthenticated, userId: user?.id, hasData: !!interviewResult });
     
+    // No cargar si ya hay una carga en curso (a menos que se fuerce)
+    if (isLoading && !force) {
+      console.log(`[useParticipantDashboard #${requestId}] Ya hay una carga en curso, omitiendo`);
+      return { success: false, error: 'Carga en curso' };
+    }
+
     if (!isAuthenticated || !user?.id) {
-      console.log('[useParticipantDashboard] No autenticado o sin ID de usuario');
-      return;
+      console.log(`[useParticipantDashboard #${requestId}] No autenticado o sin ID de usuario`);
+      return { success: false, error: 'No autenticado' };
+    }
+
+    // Evitar cargar si ya tenemos datos y no se fuerza la recarga
+    if (interviewResult && !force) {
+      console.log(`[useParticipantDashboard #${requestId}] Ya hay datos cargados, omitiendo carga`);
+      return { success: true, data: interviewResult };
     }
 
     console.log('[useParticipantDashboard] Iniciando carga...');
+    const loadingStartTime = performance.now();
     setIsLoading(true);
     setError(null);
 
@@ -114,15 +128,28 @@ export const useParticipantDashboard = () => {
   // Manejar cambio de tab
   const handleTabChange = useCallback((tabId: string) => {
     console.log('[useParticipantDashboard] Cambiando a tab:', tabId);
+    
+    // Actualizar la pestaña activa primero
     setActiveTab(tabId as 'interview' | 'results');
     
-    // Limpiar estados al cambiar de tab
+    // Solo cargar resultados si vamos a la pestaña de resultados
     if (tabId === 'results') {
-      loadInterviewResults();
+      // Siempre cargar al cambiar a la pestaña de resultados
+      // pero solo si no hay datos o hay un error
+      const shouldLoad = !interviewResult || !!error;
+      console.log(`[useParticipantDashboard] Debería cargar resultados? ${shouldLoad}`, {
+        hasData: !!interviewResult,
+        hasError: !!error
+      });
+      
+      if (shouldLoad) {
+        loadInterviewResults(true); // Forzar recarga para asegurar datos actualizados
+      }
     } else {
+      // Limpiar solo el error, mantener los datos cargados
       setError(null);
     }
-  }, [loadInterviewResults]);
+  }, [loadInterviewResults, interviewResult, error]);
 
   // Manejar logout
   const handleLogout = useCallback(async () => {
@@ -149,25 +176,17 @@ export const useParticipantDashboard = () => {
   const handleSidebarCollapse = useCallback((collapsed: boolean) => {
     setIsSidebarCollapsed(collapsed);
   }, []);
-
   // Limpiar error
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  // Cargar datos según el tab activo
+  // Efecto de montaje - ya no carga datos automáticamente
+  // La carga ahora se maneja exclusivamente a través del cambio de pestaña
   useEffect(() => {
-    console.log('[useParticipantDashboard] useEffect ejecutado', {
-      isAuthenticated,
-      userId: user?.id,
-      activeTab
-    });
-    
-    if (activeTab === 'results' && isAuthenticated && user?.id) {
-      console.log('[useParticipantDashboard] Cargando resultados automáticamente...');
-      loadInterviewResults();
-    }
-  }, [activeTab, isAuthenticated, user?.id, loadInterviewResults]);
+    console.log('[useParticipantDashboard] Efecto de montaje ejecutado');
+    // No cargamos datos aquí, solo en handleTabChange
+  }, []);
 
   return {
     // Estados
