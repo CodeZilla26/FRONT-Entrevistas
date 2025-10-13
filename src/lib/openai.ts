@@ -34,43 +34,42 @@ export interface AIResponse {
 export async function generateInterviewQuestions({
   position,
   description,
-  questionCount = 5
+  questionCount = 10
 }: GenerateQuestionsParams): Promise<AIResponse> {
   try {
-    const prompt = `
-Eres un experto reclutador de recursos humanos. Tu tarea es generar ${questionCount} preguntas específicas y relevantes para una entrevista de trabajo.
+    const prompt = `Genera ${questionCount} preguntas de entrevista para:
+Posición: ${position}
+Descripción: ${description}
 
-INFORMACIÓN DEL PUESTO:
-- Posición: ${position}
-- Descripción y requisitos: ${description}
+Formato JSON requerido:
+{
+  "questions": [
+    {
+      "text": "pregunta aquí",
+      "time": 3,
+      "points": 10
+    }
+  ]
+}
 
-INSTRUCCIONES:
-1. Genera exactamente ${questionCount} preguntas específicas para esta posición
-2. Las preguntas deben evaluar tanto habilidades técnicas como blandas
-3. Adapta las preguntas al nivel y tipo de puesto descrito
-4. Incluye preguntas situacionales y de experiencia
-5. Haz preguntas que permitan al candidato demostrar su conocimiento y experiencia
-
-FORMATO DE RESPUESTA:
-Responde ÚNICAMENTE con las preguntas numeradas, una por línea:
-1. [Primera pregunta]
-2. [Segunda pregunta]
-3. [Tercera pregunta]
-...
-
-No incluyas explicaciones adicionales, solo las preguntas numeradas.
-`;
+Tiempo: 2-8 minutos por pregunta
+Puntos: 5-20 según complejidad
+Responde SOLO con JSON válido:`;
 
     const completion = await openai.chat.completions.create({
-      model: "deepseek/deepseek-chat-v3.1:free",
+      model: "google/gemma-2-9b-it:free",
       messages: [
+        {
+          role: "system",
+          content: "Eres un generador de preguntas de entrevista. SIEMPRE respondes únicamente con JSON válido, sin texto adicional, explicaciones o comentarios. Tu respuesta debe empezar con { y terminar con }."
+        },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0.7,
-      max_tokens: 1000,
+      temperature: 0.3,
+      max_tokens: 1500,
     });
 
     const response = completion.choices[0]?.message?.content;
@@ -79,33 +78,75 @@ No incluyas explicaciones adicionales, solo las preguntas numeradas.
       throw new Error('No se recibió respuesta de la IA');
     }
 
-    // Procesar la respuesta para extraer las preguntas
-    const textQuestions = response
-      .split('\n')
-      .filter(line => line.trim() && /^\d+\./.test(line.trim()))
-      .map(line => line.replace(/^\d+\.\s*/, '').trim())
-      .filter(question => question.length > 0);
-
-    if (textQuestions.length === 0) {
-      throw new Error('No se pudieron extraer preguntas válidas de la respuesta');
+    // Procesar la respuesta JSON
+    let parsedResponse;
+    try {
+      // Limpiar la respuesta por si tiene texto extra
+      let cleanResponse = response.trim();
+      
+      // Buscar JSON en la respuesta
+      const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanResponse = jsonMatch[0];
+      } else {
+        // Si no encuentra JSON, intentar extraer desde el primer {
+        const startIndex = cleanResponse.indexOf('{');
+        const endIndex = cleanResponse.lastIndexOf('}');
+        if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+          cleanResponse = cleanResponse.substring(startIndex, endIndex + 1);
+        }
+      }
+      
+      parsedResponse = JSON.parse(cleanResponse);
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+      console.error('Respuesta completa de la IA:', response);
+      throw new Error('La IA no devolvió un JSON válido. Respuesta: ' + response.substring(0, 300));
     }
 
-    // Asignar puntos y tiempo por pregunta (heurística simple)
-    const questions: GeneratedQuestion[] = textQuestions.map((text) => ({
-      text,
-      points: 10, // puedes ajustar lógica según complejidad
-      time: 120,  // 2 minutos por pregunta por defecto
-    }));
+    if (!parsedResponse.questions || !Array.isArray(parsedResponse.questions)) {
+      throw new Error('La respuesta no contiene un array de preguntas válido');
+    }
+
+    // Validar y mapear las preguntas
+    const questions: GeneratedQuestion[] = parsedResponse.questions.map((q: any, index: number) => {
+      if (!q.text || typeof q.text !== 'string') {
+        throw new Error(`Pregunta ${index + 1} no tiene texto válido`);
+      }
+      if (!q.time || typeof q.time !== 'number' || q.time < 1 || q.time > 10) {
+        throw new Error(`Pregunta ${index + 1} no tiene tiempo válido (debe ser 1-10 minutos)`);
+      }
+      if (!q.points || typeof q.points !== 'number' || q.points < 1 || q.points > 25) {
+        throw new Error(`Pregunta ${index + 1} no tiene puntos válidos (debe ser 1-25 puntos)`);
+      }
+
+      return {
+        text: q.text.trim(),
+        time: Math.round(q.time * 60), // Convertir minutos a segundos
+        points: Math.round(q.points)
+      };
+    });
+
+    if (questions.length === 0) {
+      throw new Error('No se generaron preguntas válidas');
+    }
 
     return { questions, success: true };
 
   } catch (error) {
     console.error('Error generando preguntas:', error);
     
+    // Fallback: generar preguntas básicas si la IA falla
+    const fallbackQuestions: GeneratedQuestion[] = Array.from({ length: Math.min(questionCount, 5) }, (_, i) => ({
+      text: `Pregunta ${i + 1} para ${position}: Describe tu experiencia relevante para esta posición.`,
+      time: 180, // 3 minutos
+      points: 10
+    }));
+    
     return {
-      questions: [],
+      questions: fallbackQuestions,
       success: false,
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      error: `Error de IA (usando preguntas de respaldo): ${error instanceof Error ? error.message : 'Error desconocido'}`
     };
   }
 }
@@ -116,7 +157,7 @@ No incluyas explicaciones adicionales, solo las preguntas numeradas.
 export async function testAIConnection(): Promise<{ success: boolean; message: string }> {
   try {
     const completion = await openai.chat.completions.create({
-      model: "deepseek/deepseek-chat-v3.1:free",
+      model: "google/gemma-2-9b-it:free",
       messages: [
         {
           role: "user",
@@ -156,48 +197,68 @@ export async function regenerateSpecificQuestions({
   indicesToRegenerate: number[];
 }): Promise<AIResponse> {
   try {
-    // Normalizar a texto
-    const existingTexts = existingQuestions.map((q) => typeof q === 'string' ? q : q.text);
-    const questionsToKeep = existingTexts
-      .map((q, i) => !indicesToRegenerate.includes(i) ? `${i + 1}. ${q}` : null)
+    console.log('[REGENERATE DEBUG] Datos recibidos:', {
+      position,
+      description: description.substring(0, 100),
+      existingQuestions: existingQuestions.length,
+      indicesToRegenerate
+    });
+
+    // Normalizar a objetos GeneratedQuestion
+    const existingObjs = existingQuestions.map((q) => 
+      typeof q === 'string' 
+        ? { text: q, points: 10, time: 180 } // Valores por defecto si es string
+        : q
+    );
+
+    console.log('[REGENERATE DEBUG] Objetos normalizados:', existingObjs.map(q => ({ 
+      text: q.text.substring(0, 50), 
+      points: q.points, 
+      time: q.time 
+    })));
+    
+    const questionsToKeep = existingObjs
+      .map((q, i) => !indicesToRegenerate.includes(i) ? `${i + 1}. ${q.text} (${q.points} pts, ${Math.round(q.time / 60)} min)` : null)
       .filter(Boolean)
       .join('\n');
 
-    const prompt = `
-Eres un experto reclutador. Necesito que regeneres ÚNICAMENTE las preguntas específicas para una entrevista de trabajo.
+    const prompt = `Regenera ${indicesToRegenerate.length} preguntas diferentes para:
+Posición: ${position}
+Descripción: ${description}
 
-INFORMACIÓN DEL PUESTO:
-- Posición: ${position}
-- Descripción: ${description}
-
-PREGUNTAS ACTUALES QUE SE MANTIENEN:
+Preguntas existentes que se mantienen:
 ${questionsToKeep}
 
-INSTRUCCIONES:
-1. Genera ${indicesToRegenerate.length} nuevas preguntas para reemplazar las posiciones: ${indicesToRegenerate.map(i => i + 1).join(', ')}
-2. Las nuevas preguntas deben ser diferentes a las existentes
-3. Mantén el mismo nivel de calidad y relevancia
-4. Enfócate en aspectos no cubiertos por las preguntas que se mantienen
+Genera ${indicesToRegenerate.length} preguntas nuevas y diferentes.
 
-FORMATO DE RESPUESTA:
-Responde ÚNICAMENTE con las nuevas preguntas numeradas:
-1. [Nueva pregunta 1]
-2. [Nueva pregunta 2]
-...
+Formato JSON requerido:
+{
+  "questions": [
+    {
+      "text": "nueva pregunta aquí",
+      "time": 4,
+      "points": 12
+    }
+  ]
+}
 
-No incluyas explicaciones, solo las preguntas numeradas.
-`;
+Tiempo: 2-8 minutos, Puntos: 5-20
+Responde SOLO con JSON válido:`;
 
     const completion = await openai.chat.completions.create({
-      model: "deepseek/deepseek-chat-v3.1:free",
+      model: "google/gemma-2-9b-it:free",
       messages: [
+        {
+          role: "system",
+          content: "Eres un generador de preguntas de entrevista. SIEMPRE respondes únicamente con JSON válido, sin texto adicional, explicaciones o comentarios. Tu respuesta debe empezar con { y terminar con }."
+        },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0.8,
-      max_tokens: 800,
+      temperature: 0.3,
+      max_tokens: 1200,
     });
 
     const response = completion.choices[0]?.message?.content;
@@ -206,17 +267,60 @@ No incluyas explicaciones, solo las preguntas numeradas.
       throw new Error('No se recibió respuesta de la IA');
     }
 
-    const textQuestions = response
-      .split('\n')
-      .filter(line => line.trim() && /^\d+\./.test(line.trim()))
-      .map(line => line.replace(/^\d+\.\s*/, '').trim())
-      .filter(question => question.length > 0);
+    console.log('[REGENERATE DEBUG] Respuesta de la IA:', response.substring(0, 500));
 
-    const newQuestions: GeneratedQuestion[] = textQuestions.map((text) => ({
-      text,
-      points: 10,
-      time: 120,
-    }));
+    // Procesar la respuesta JSON
+    let parsedResponse;
+    try {
+      // Limpiar la respuesta por si tiene texto extra
+      let cleanResponse = response.trim();
+      
+      // Buscar JSON en la respuesta
+      const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanResponse = jsonMatch[0];
+      } else {
+        // Si no encuentra JSON, intentar extraer desde el primer {
+        const startIndex = cleanResponse.indexOf('{');
+        const endIndex = cleanResponse.lastIndexOf('}');
+        if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+          cleanResponse = cleanResponse.substring(startIndex, endIndex + 1);
+        }
+      }
+      
+      parsedResponse = JSON.parse(cleanResponse);
+    } catch (error) {
+      console.error('Error parsing JSON en regeneración:', error);
+      console.error('Respuesta completa de la IA:', response);
+      throw new Error('La IA no devolvió un JSON válido para regeneración. Respuesta: ' + response.substring(0, 300));
+    }
+
+    if (!parsedResponse.questions || !Array.isArray(parsedResponse.questions)) {
+      throw new Error('La respuesta de regeneración no contiene un array de preguntas válido');
+    }
+
+    if (parsedResponse.questions.length !== indicesToRegenerate.length) {
+      throw new Error(`Se esperaban ${indicesToRegenerate.length} preguntas, pero se recibieron ${parsedResponse.questions.length}`);
+    }
+
+    // Validar y mapear las preguntas regeneradas
+    const newQuestions: GeneratedQuestion[] = parsedResponse.questions.map((q: any, index: number) => {
+      if (!q.text || typeof q.text !== 'string') {
+        throw new Error(`Pregunta regenerada ${index + 1} no tiene texto válido`);
+      }
+      if (!q.time || typeof q.time !== 'number' || q.time < 1 || q.time > 10) {
+        throw new Error(`Pregunta regenerada ${index + 1} no tiene tiempo válido (debe ser 1-10 minutos)`);
+      }
+      if (!q.points || typeof q.points !== 'number' || q.points < 1 || q.points > 25) {
+        throw new Error(`Pregunta regenerada ${index + 1} no tiene puntos válidos (debe ser 1-25 puntos)`);
+      }
+
+      return {
+        text: q.text.trim(),
+        time: Math.round(q.time * 60), // Convertir minutos a segundos
+        points: Math.round(q.points)
+      };
+    });
 
     return { questions: newQuestions, success: true };
 

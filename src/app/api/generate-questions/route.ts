@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       result = await generateInterviewQuestions({
         position,
         description,
-        questionCount: questionCount || 5
+        questionCount: questionCount || 10
       });
     }
 

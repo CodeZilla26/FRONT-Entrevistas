@@ -42,7 +42,7 @@ export const useInterviews = ({ interviews, setInterviews, onShowToast }: UseInt
         body: JSON.stringify({
           position: newInterview.title.trim(),
           description: newInterview.description.trim(),
-          questionCount: 5
+          questionCount: 10
         }),
       });
 
@@ -177,7 +177,7 @@ export const useInterviews = ({ interviews, setInterviews, onShowToast }: UseInt
           position: newInterview.title.trim(),
           description: newInterview.description.trim(),
           regenerateMode: true,
-          existingQuestions: generatedQuestions,
+          existingQuestions: generatedQuestionObjs, // Pasar objetos completos en lugar de solo texto
           indicesToRegenerate
         }),
       });

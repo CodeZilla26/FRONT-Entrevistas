@@ -368,7 +368,7 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
                       <h4 className="text-indigo-300 font-semibold">Generación con IA</h4>
                     </div>
                     <p className="text-slate-400 text-sm">
-                      Nuestra IA analizará el título y descripción para generar 5 preguntas personalizadas con puntuación y tiempo estimado.
+                      Nuestra IA analizará el título y descripción para generar 10 preguntas personalizadas con puntuación y tiempo estimado.
                     </p>
                   </div>
                   
@@ -428,7 +428,7 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
                               </span>
                               <span className="mx-2">•</span>
                               <span className="text-purple-400 font-medium">
-                                {interviewsHook.generatedQuestionObjs[index]?.time || 0} min
+                                {Math.round((interviewsHook.generatedQuestionObjs[index]?.time || 0) / 60)} min
                               </span>
                             </div>
                           </div>
