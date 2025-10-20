@@ -21,6 +21,7 @@ export const useInterviews = ({ interviews, setInterviews, onShowToast }: UseInt
   const [isCreatingInterview, setIsCreatingInterview] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   const [showCreateInterviewModal, setShowCreateInterviewModal] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Función para generar preguntas con IA
   const handleGenerateQuestions = async (e: React.FormEvent) => {
@@ -79,6 +80,52 @@ export const useInterviews = ({ interviews, setInterviews, onShowToast }: UseInt
       );
     } finally {
       setIsGeneratingQuestions(false);
+    }
+  };
+
+  // Función para eliminar una entrevista
+  const handleDeleteInterview = async (id: string) => {
+    if (!id) {
+      onShowToast('ID de entrevista inválido', 'error');
+      return;
+    }
+
+    if (!isAuthenticated) {
+      onShowToast('Inicia sesión para eliminar entrevistas', 'error');
+      return;
+    }
+
+    try {
+      setDeletingId(id);
+
+      const res = await getAuthFetch(`/api/interview/delete/${id}`, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/json' },
+      });
+
+      const raw = await res.text();
+      let data: any = null;
+      try { data = raw ? JSON.parse(raw) : null; } catch { data = raw; }
+
+      if (!res.ok) {
+        // Extraer mensaje de error estándar del backend
+        const serverMsg = typeof data === 'string' ? data : (data?.message || data?.error || JSON.stringify(data));
+        const statusMsg = res.status === 400 ? 'Solicitud inválida'
+          : res.status === 401 ? 'No autorizado'
+          : res.status === 403 ? 'Prohibido'
+          : res.status === 404 ? 'No encontrado'
+          : 'Error del servidor';
+        throw new Error(serverMsg ? `${statusMsg}: ${serverMsg}` : `${statusMsg} (HTTP ${res.status})`);
+      }
+
+      // 200 OK
+      setInterviews(prev => prev.filter(it => String(it.id) !== String(id)));
+      onShowToast('Entrevista eliminada', 'success');
+    } catch (error) {
+      console.error('[Eliminar Entrevista] Error:', error);
+      onShowToast(error instanceof Error ? error.message : 'Error al eliminar entrevista', 'error');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -268,6 +315,7 @@ export const useInterviews = ({ interviews, setInterviews, onShowToast }: UseInt
     setShowQuestions,
     showCreateInterviewModal,
     setShowCreateInterviewModal,
+    deletingId,
     
     // Funciones
     handleGenerateQuestions,
@@ -275,5 +323,6 @@ export const useInterviews = ({ interviews, setInterviews, onShowToast }: UseInt
     handleRegenerateQuestions,
     handleToggleQuestionStatus,
     handleEditQuestion,
+    handleDeleteInterview,
   };
 };

@@ -52,12 +52,26 @@ export class ParticipantService {
         throw new Error('La respuesta no es un array válido');
       }
 
-      // Mapear datos de API a formato UI
+      // Helper: mapear estado backend -> etiqueta de UI
+      const mapInterviewStatusToUI = (backendStatus?: string): Participant['status'] => {
+        switch ((backendStatus || '').toUpperCase()) {
+          case 'COMPLETADA':
+            return 'Entrevista Completa';
+          case 'PENDIENTE':
+            return 'En Proceso';
+          case 'NO_ASIGNADA':
+            return 'Pendiente';
+          default:
+            return 'Pendiente';
+        }
+      };
+
+      // Mapear datos de API v2 a formato UI
       const participants: Participant[] = data.map((item: any) => ({
         id: String(item.id), // Asegurar que sea string
         name: [item.name, item.lastName].filter(Boolean).join(' ') || 'N/A',
         email: item.email ?? 'sin-email@local',
-        status: (item.status as Participant['status']) || 'Pendiente',
+        status: mapInterviewStatusToUI(item.interviewStatus),
         dateRegistered: item.dateRegistered || item.createdAt || undefined,
       }));
 

@@ -17,7 +17,7 @@ export const INTERVIEWS_API_BASE = API_BASE_URL;
 export const INTERVIEWS_JWT = process.env.INTERVIEWS_JWT!;
 
 // Participants API URLs
-export const PARTICIPANTS_LIST_URL = `${API_BASE_URL}/api/user/listPracticantes`;
+export const PARTICIPANTS_LIST_URL = `${API_BASE_URL}/api/user/listPracticantes/v2`;
 export const PARTICIPANTS_CREATE_URL = `${API_BASE_URL}/api/user/create`;
 export const PARTICIPANTS_JWT = INTERVIEWS_JWT;
 

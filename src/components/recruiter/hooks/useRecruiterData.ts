@@ -175,14 +175,26 @@ export const useRecruiterData = ({ activeTab, onShowToast }: UseRecruiterDataPro
             const pRes = await getAuthFetch(PARTICIPANTS_LIST_URL);
             const pData = await pRes.json().catch(() => []);
             if (pRes.ok && Array.isArray(pData)) {
-              const mapped: Participant[] = pData.map((it: any, idx: number) => {
-                const realId = it.id;
-                
+              const mapInterviewStatusToUI = (backendStatus?: string): Participant['status'] => {
+                switch ((backendStatus || '').toUpperCase()) {
+                  case 'COMPLETADA':
+                    return 'Entrevista Completa';
+                  case 'PENDIENTE':
+                    return 'En Proceso';
+                  case 'NO_ASIGNADA':
+                    return 'Pendiente';
+                  default:
+                    return 'Pendiente';
+                }
+              };
+
+              const mapped: Participant[] = pData.map((it: any) => {
+                const realId = String(it.id);
                 return {
-                  id: realId, // Mantener como string: "68c31b1c6ddbff39734c26c7"
+                  id: realId,
                   name: [it.name, it.lastName].filter(Boolean).join(' ') || 'N/A',
                   email: it.email ?? 'sin-email@local',
-                  status: (it.status as Participant['status']) || 'Pendiente',
+                  status: mapInterviewStatusToUI(it.interviewStatus),
                   dateRegistered: it.dateRegistered || it.createdAt || undefined,
                 };
               });

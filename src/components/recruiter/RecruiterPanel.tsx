@@ -250,18 +250,17 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
                             <span>{formatDate(interview.createdAt)}</span>
                           </div>
                           
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={() => onShowToast('Función de editar en desarrollo', 'info')}
-                              className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                          <div className="flex">
+                            <button
+                              onClick={() => interviewsHook.handleDeleteInterview(String(interview.id))}
+                              disabled={interviewsHook.deletingId === String(interview.id)}
+                              className={`w-full px-4 py-2 rounded-lg transition-all duration-300 ${
+                                interviewsHook.deletingId === String(interview.id)
+                                  ? 'bg-red-500/10 text-red-300 cursor-not-allowed'
+                                  : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'
+                              }`}
                             >
-                              Editar
-                            </button>
-                            <button 
-                              onClick={() => onShowToast('Función de eliminar en desarrollo', 'info')}
-                              className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all duration-300"
-                            >
-                              🗑️
+                              {interviewsHook.deletingId === String(interview.id) ? 'Eliminando…' : '🗑️ Eliminar'}
                             </button>
                           </div>
                         </div>
