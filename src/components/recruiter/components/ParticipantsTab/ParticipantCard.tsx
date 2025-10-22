@@ -11,6 +11,8 @@ export const ParticipantCard: React.FC<ParticipantCardProps> = ({
   participant,
   onAssignInterview
 }) => {
+  // Debug: verificar estado del participante
+  console.log('[ParticipantCard] Participante:', participant.name, 'Estado:', participant.status);
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Entrevista Completa':
@@ -94,12 +96,18 @@ export const ParticipantCard: React.FC<ParticipantCardProps> = ({
 
       {/* Actions */}
       <div className="relative flex space-x-2 mt-4">
-        <button
-          onClick={() => onAssignInterview(participant)}
-          className="flex-1 bg-gradient-to-r from-indigo-600/80 to-purple-600/80 hover:from-indigo-700/90 hover:to-purple-700/90 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg backdrop-blur-sm border border-indigo-500/30 hover:shadow-indigo-500/25 hover:shadow-lg hover:scale-105 text-sm"
-        >
-          Asignar Entrevista
-        </button>
+        {participant.status === 'Pendiente' ? (
+          <button
+            onClick={() => onAssignInterview(participant)}
+            className="flex-1 bg-gradient-to-r from-indigo-600/80 to-purple-600/80 hover:from-indigo-700/90 hover:to-purple-700/90 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg backdrop-blur-sm border border-indigo-500/30 hover:shadow-indigo-500/25 hover:shadow-lg hover:scale-105 text-sm"
+          >
+            Asignar Entrevista
+          </button>
+        ) : (
+          <div className="flex-1 bg-slate-700/50 text-slate-400 font-medium py-3 px-4 rounded-xl text-center text-sm border border-slate-600/30">
+            {participant.status === 'Entrevista Completa' ? 'Completado' : 'Asignado'}
+          </div>
+        )}
       </div>
     </div>
   );

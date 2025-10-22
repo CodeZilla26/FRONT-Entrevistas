@@ -85,6 +85,7 @@ export interface ApiErrorResponse {
 }
 
 export interface PracticanteInterviewQuestion {
+  id: string;
   text: string;
   points: number;
   time: number;

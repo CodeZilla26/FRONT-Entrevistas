@@ -10,6 +10,8 @@ export const ParticipantTable: React.FC<ParticipantTableProps> = ({
   participants,
   onAssignInterview
 }) => {
+  // Debug: verificar estados que llegan
+  console.log('[ParticipantTable] Estados de participantes:', participants.map(p => ({ name: p.name, status: p.status })));
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Entrevista Completa':
@@ -87,12 +89,20 @@ export const ParticipantTable: React.FC<ParticipantTableProps> = ({
                 )}
               </td>
               <td className="py-4 px-2">
-                <button
-                  onClick={() => onAssignInterview(participant)}
-                  className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 font-medium py-1 px-3 rounded-lg transition-all duration-200 text-sm"
-                >
-                  Asignar
-                </button>
+                {participant.status === 'Pendiente' ? (
+                  <button
+                    onClick={() => onAssignInterview(participant)}
+                    className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 font-medium py-1 px-3 rounded-lg transition-all duration-200 text-sm"
+                  >
+                    Asignar
+                  </button>
+                ) : participant.status === 'En Proceso' ? (
+                  <span className="text-slate-500 text-xs">Asignado</span>
+                ) : participant.status === 'Entrevista Completa' ? (
+                  <span className="text-slate-500 text-xs">Completado</span>
+                ) : (
+                  <span className="text-slate-500 text-xs">-</span>
+                )}
               </td>
             </tr>
           ))}

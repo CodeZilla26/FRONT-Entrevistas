@@ -329,10 +329,13 @@ export const useInterview = () => {
         formData.append('interviewId', currentInterviewData.id);
         formData.append('durationMinutes', durationMinutes.toString());
         
-        // Agregar archivos de audio como array
+        // Agregar archivos de audio como array usando IDs de preguntas
         if (audioFiles && audioFiles.length > 0) {
           audioFiles.forEach((audioBlob, index) => {
-            formData.append('audios', audioBlob, `audio_question_${index}.webm`);
+            // Usar el ID de la pregunta si está disponible, sino usar índice como fallback
+            const questionId = currentInterviewData?.questions?.[index]?.id || `question_${index}`;
+            formData.append('audios', audioBlob, `${questionId}.webm`);
+            console.log(`[finishInterview] Audio ${index} nombrado como: ${questionId}.webm`);
           });
         }
         
