@@ -41,7 +41,7 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
   const recordingStartRef = useRef<number | null>(null);
   const lastSavedIndexRef = useRef<number | null>(null);
   const interviewStartTimeRef = useRef<number | null>(null);
-  const audioAnswersRef = useRef<Array<{ blob: Blob; filename: string; index: number; questionText: string }>>([]);
+  const audioAnswersRef = useRef<Array<{ blob: Blob; index: number; questionText: string }>>([]);
   const [audioDownloadUrl, setAudioDownloadUrl] = useState<string | null>(null);
   const [audioFilename, setAudioFilename] = useState<string | null>(null);
   const [audioDurationSec, setAudioDurationSec] = useState<number>(0);
@@ -217,27 +217,19 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
       const questionText = questions[qIndex] || `Pregunta-${qIndex + 1}`;
       
       // Crear nombre de archivo basado en el texto de la pregunta
-      const cleanQuestionText = questionText
-        .replace(/[^a-zA-Z0-9\s]/g, '') // Remover caracteres especiales
-        .replace(/\s+/g, ' ') // Normalizar espacios múltiples a uno solo
-        .trim() // Eliminar espacios al inicio y final
-        .substring(0, 80); // Limitar longitud a 80 caracteres
-      
-      const filename = `${cleanQuestionText}.webm`;
       const duration = recordingStartRef.current ? (Date.now() - recordingStartRef.current) / 1000 : 0;
 
       console.log(`[AUDIO DEBUG] Datos preparados:`, {
-        filename,
-        questionText,
-        cleanQuestionText,
+        questionText: questionText.substring(0, 50) + '...',
         duration,
-        blobSize: blob.size
+        blobSize: blob.size,
+        questionIndex: qIndex
       });
       
-      console.log(`[AUDIO DEBUG] 📝 Nombre de archivo generado: "${filename}" basado en pregunta: "${questionText}"`);
+      console.log(`[AUDIO DEBUG] 📝 Audio guardado para pregunta ${qIndex + 1} - el hook usará ID de pregunta como nombre`);
 
-      // Guardar en memoria para envío final
-      audioAnswersRef.current.push({ blob, filename, index: qIndex, questionText });
+      // Guardar en memoria para envío final (sin filename, el hook lo generará con ID)
+      audioAnswersRef.current.push({ blob, index: qIndex, questionText });
       console.log(`[AUDIO DEBUG] ✅ Audio guardado en memoria. Total respuestas:`, audioAnswersRef.current.length);
       console.log(`[AUDIO DEBUG] ✅ Sin guardado en IndexedDB - solo para envío a API`);
       onShowToast(`Audio respuesta ${qIndex + 1} listo`, 'success');
@@ -459,8 +451,7 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
-      // Resto del código de envío continúa aquí...
-      console.log(`[FINISH DEBUG] 📤 Iniciando envío de datos en segundo plano...`);
+      console.log(`[FINISH DEBUG] 📤 Usando hook finishInterview con IDs de preguntas...`);
       
       // Crear blob de video
       let videoBlob: Blob | null = null;
@@ -470,153 +461,36 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
           size: videoBlob.size,
           type: videoBlob.type
         });
-      } else {
-        console.warn(`[FINISH DEBUG] ⚠️ No hay chunks de video disponibles`);
       }
 
-      // Preparar datos para envío
-      if (!user?.id || !currentInterviewData?.id) {
-        console.error(`[FINISH DEBUG] ❌ Faltan datos para envío:`, {
-          hasUserId: !!user?.id,
-          hasInterviewId: !!currentInterviewData?.id
-        });
-        onShowToast('Error: Faltan datos para finalizar entrevista', 'error');
-        return;
-      }
-
-      if (audioAnswersRef.current.length === 0) {
-        console.warn(`[FINISH DEBUG] ⚠️ No hay respuestas de audio para enviar`);
-        onShowToast('Advertencia: No se capturaron respuestas de audio', 'info');
-      }
-      console.log(`[FINISH DEBUG] Preparando FormData para envío con archivos multimedia...`);
-      const form = new FormData();
-      
-      // Calcular duración total de la entrevista con logs detallados
-      const currentTime = Date.now();
-      const startTime = interviewStartTimeRef.current;
-      
-      console.log(`[DURATION DEBUG] === CALCULANDO DURACIÓN DE ENTREVISTA ===`);
-      console.log(`[DURATION DEBUG] Tiempo actual:`, currentTime);
-      console.log(`[DURATION DEBUG] Tiempo de inicio:`, startTime);
-      console.log(`[DURATION DEBUG] Tiempo de inicio existe:`, !!startTime);
-      
-      let durationMs = 0;
-      let durationMinutes = 0;
-      let durationString = "0";
-      
-      if (startTime) {
-        durationMs = currentTime - startTime;
-        durationMinutes = Math.round(durationMs / (1000 * 60));
-        durationString = durationMinutes.toString();
-        
-        console.log(`[DURATION DEBUG] Duración en milisegundos:`, durationMs);
-        console.log(`[DURATION DEBUG] Duración en minutos (calculada):`, durationMs / (1000 * 60));
-        console.log(`[DURATION DEBUG] Duración en minutos (redondeada):`, durationMinutes);
-        console.log(`[DURATION DEBUG] Duración como string:`, durationString);
-      } else {
-        console.warn(`[DURATION DEBUG] ⚠️ No hay tiempo de inicio registrado - usando 0`);
-      }
-      
-      console.log(`[DURATION DEBUG] Resumen final:`, {
-        startTime: startTime ? new Date(startTime).toISOString() : 'No registrado',
-        endTime: new Date(currentTime).toISOString(),
-        durationMs,
-        durationMinutes,
-        durationString,
-        willSendToAPI: durationString
-      });
-      
-      // Agregar audios (array según la API)
-      audioAnswersRef.current
+      // Preparar audios ordenados
+      const audioFiles = audioAnswersRef.current
         .sort((a, b) => a.index - b.index)
-        .forEach((ans, index) => {
-          console.log(`[FINISH DEBUG] Agregando audio ${index + 1}:`, {
-            filename: ans.filename,
+        .map(ans => {
+          console.log(`[FINISH DEBUG] Audio preparado para pregunta ${ans.index}:`, {
             size: ans.blob.size,
-            questionIndex: ans.index,
-            questionText: ans.questionText
+            questionText: ans.questionText.substring(0, 50) + '...'
           });
-          console.log(`[FINISH DEBUG] 🎵 Audio "${ans.filename}" para pregunta: "${ans.questionText}"`);
-          form.append('audios', ans.blob, ans.filename);
+          return ans.blob;
         });
-      
-      // Agregar video (string($binary) según la API)
-      if (videoBlob && videoBlob.size > 0) {
-        const videoFilename = `sesion-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
-        form.append('video', videoBlob, videoFilename);
-        console.log(`[FINISH DEBUG] Video agregado:`, {
-          filename: videoFilename,
-          size: videoBlob.size
-        });
-      } else {
-        console.warn(`[FINISH DEBUG] ⚠️ No se agregó video (vacío o inexistente)`);
-      }
-      
-      // Agregar parámetros requeridos
-      form.append('userId', user.id);
-      form.append('interviewId', currentInterviewData.id);
-      form.append('durationMinutes', durationString); // Enviado como string
 
-      console.log(`[FINISH DEBUG] Datos finales para envío:`, {
-        userId: user.id,
-        interviewId: currentInterviewData.id,
-        durationMinutes: durationString, // Mostrar como string
-        durationMinutesNumber: durationMinutes, // Para referencia
-        audioCount: audioAnswersRef.current.length,
-        hasVideo: !!(videoBlob && videoBlob.size > 0)
+      console.log(`[FINISH DEBUG] Llamando finishInterview del hook con:`, {
+        audioCount: audioFiles.length,
+        hasVideo: !!videoBlob
       });
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/userinterview/finishInterview`;
-      console.log(`[FINISH DEBUG] 📤 Enviando a ${apiUrl} con JWT (directo a Spring Boot)...`);
-      console.log(`[FINISH DEBUG] FormData entries:`, Array.from(form.entries()).map(([key, value]) => ({
-        key,
-        type: typeof value,
-        size: value instanceof Blob ? value.size : 'N/A',
-        value: value instanceof Blob ? `[Blob ${value.size} bytes]` : value
-      })));
-
-      // Usar getAuthFetch del contexto de autenticación en lugar de fetch manual
-      console.log(`[FINISH DEBUG] Usando getAuthFetch para envío con JWT automático...`);
-      console.log(`[FINISH DEBUG] ⏱️ Timeout extendido activado para archivos multimedia (2 minutos)`);
+      // Usar la función del hook que ya tiene la lógica correcta con IDs
+      await finishInterview(audioFiles, videoBlob || undefined);
       
-      // Debug: verificar token antes del envío
-      const authHeader = getAuthHeader();
-      const tokenFromStorage = localStorage.getItem('token');
-      console.log(`[FINISH DEBUG] 🔑 Auth header:`, authHeader);
-      console.log(`[FINISH DEBUG] 🔑 Token en localStorage:`, tokenFromStorage ? `${tokenFromStorage.substring(0, 20)}...` : 'NO_TOKEN');
-      console.log(`[FINISH DEBUG] 👤 Usuario actual:`, { id: user?.id, email: user?.email, type: user?.type });
+      onShowToast('¡Entrevista finalizada y enviada!', 'success');
+      console.log(`[FINISH DEBUG] ✅ Entrevista enviada usando hook con IDs de preguntas`);
       
-      const res = await getAuthFetch(apiUrl, {
-        method: 'POST',
-        body: form,
-      });
-      
-      console.log(`[FINISH DEBUG] Respuesta del servidor:`, {
-        status: res.status,
-        statusText: res.statusText,
-        ok: res.ok
-      });
-      
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        console.log(`[FINISH DEBUG] ✅ Entrevista enviada exitosamente:`, data);
-        onShowToast('¡Entrevista finalizada y enviada!', 'success');
-        console.log(`[FINISH DEBUG] 🎉 Envío completado - panel de finalización ya está visible`);
-        
-        // No llamar a finishInterview() del hook - ya enviamos los datos directamente
-      } else {
-        console.error(`[FINISH DEBUG] ❌ Error del servidor:`, {
-          status: res.status,
-          data
-        });
-        onShowToast(data?.message || 'No se pudo finalizar entrevista en el servidor', 'error');
-      }
     } catch (err) {
-      console.error(`[FINISH DEBUG] ❌ Error de red:`, err);
-      onShowToast('Error de conexión al finalizar entrevista', 'error');
+      console.error(`[FINISH DEBUG] ❌ Error usando hook finishInterview:`, err);
+      onShowToast('Error al finalizar entrevista', 'error');
     } finally {
-      setIsFinishing(false); // Reset bandera para permitir reintentos
-      setIsSubmitting(false); // Reset estado de envío
+      setIsFinishing(false);
+      setIsSubmitting(false);
       console.log(`[FINISH DEBUG] 🔄 Banderas de finalización reseteadas`);
     }
   };

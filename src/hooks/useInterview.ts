@@ -331,9 +331,20 @@ export const useInterview = () => {
         
         // Agregar archivos de audio como array usando IDs de preguntas
         if (audioFiles && audioFiles.length > 0) {
+          console.log('[finishInterview] DEBUG - Preguntas disponibles:', currentInterviewData?.questions?.map(q => ({ id: q.id, text: q.text.substring(0, 30) + '...' })));
+          
           audioFiles.forEach((audioBlob, index) => {
             // Usar el ID de la pregunta si está disponible, sino usar índice como fallback
-            const questionId = currentInterviewData?.questions?.[index]?.id || `question_${index}`;
+            const question = currentInterviewData?.questions?.[index];
+            const questionId = question?.id || `question_${index}`;
+            
+            console.log(`[finishInterview] DEBUG - Pregunta ${index}:`, {
+              questionObject: question,
+              extractedId: question?.id,
+              finalQuestionId: questionId,
+              questionText: question?.text?.substring(0, 50) + '...'
+            });
+            
             formData.append('audios', audioBlob, `${questionId}.webm`);
             console.log(`[finishInterview] Audio ${index} nombrado como: ${questionId}.webm`);
           });
