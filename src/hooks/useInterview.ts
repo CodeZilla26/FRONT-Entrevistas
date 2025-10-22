@@ -145,7 +145,7 @@ export const useInterview = () => {
     } finally {
       setIsLoadingQuestions(false);
     }
-  }, [isAuthenticated, user?.id, getAuthFetch]);
+  }, [isAuthenticated, user?.id, user?.email, getAuthFetch]);
 
   const startTimer = useCallback(() => {
     setState(prev => ({ ...prev, responseTimeLeft: 120 }));
@@ -387,7 +387,7 @@ export const useInterview = () => {
     // ❌ ELIMINADO: No guardar en localStorage para que no persista al refrescar
     // DataManager.saveData('interviewCompleted', true);
     console.log('[finishInterview] ✅ Entrevista completada - NO se guarda en localStorage (se resetea al refrescar)');
-  }, [state.mediaRecorder, state.stream, stopTimer, stopSpeaking, currentInterviewData, user?.id, getAuthFetch]);
+  }, [state.mediaRecorder, state.stream, stopTimer, stopSpeaking, currentInterviewData, user?.id, interviewStartTime, getAuthFetch]);
 
   // Cargar preguntas automáticamente al inicializar (solo una vez)
   useEffect(() => {
@@ -418,7 +418,7 @@ export const useInterview = () => {
         clearTimeout(timeoutId);
       };
     }
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, user?.id, isLoadingQuestions, apiQuestions.length, questionsError, loadQuestionsFromAPI]);
 
   // ❌ ELIMINADO: No cargar estado completado desde localStorage
   // useEffect(() => {

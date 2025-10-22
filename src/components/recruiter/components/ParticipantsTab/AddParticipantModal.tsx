@@ -123,7 +123,7 @@ export const AddParticipantModal: React.FC<AddParticipantModalProps> = ({
               <div>
                 <p className="text-blue-300 font-medium text-sm">Información importante</p>
                 <p className="text-blue-200 text-xs mt-1">
-                  Se creará una cuenta de participante con rol "PRACTICANTE". 
+                  Se creará una cuenta de participante con rol &ldquo;PRACTICANTE&rdquo;. 
                   El usuario recibirá las credenciales por email.
                 </p>
               </div>

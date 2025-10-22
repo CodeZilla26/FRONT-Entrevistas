@@ -278,14 +278,14 @@ export const InterviewResultsView = ({
                       {/* Respuesta del usuario */}
                       <div className="bg-slate-800/40 p-4 rounded-lg border-l-4 border-indigo-500/50 mb-3">
                         <p className="text-slate-300 text-sm leading-relaxed">
-                          <span className="text-indigo-300 font-medium">Tu respuesta:</span> "{(() => {
+                          <span className="text-indigo-300 font-medium">Tu respuesta:</span> &ldquo;{(() => {
                             try {
                               const parsed = JSON.parse(answer.responseText);
                               return parsed.text || answer.responseText;
                             } catch {
                               return answer.responseText;
                             }
-                          })()}"
+                          })()}&rdquo;
                         </p>
                       </div>
 

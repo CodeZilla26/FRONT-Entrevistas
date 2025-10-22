@@ -748,7 +748,7 @@ export const RecruiterPanel = ({ activeTab, onShowToast }: RecruiterPanelProps) 
           </svg>
         </div>
         <h3 className="text-xl font-semibold text-slate-100 mb-2">Tab no encontrado</h3>
-        <p className="text-slate-400">El tab "{activeTab}" no está implementado</p>
+        <p className="text-slate-400">El tab &ldquo;{activeTab}&rdquo; no está implementado</p>
       </div>
     </div>
   );

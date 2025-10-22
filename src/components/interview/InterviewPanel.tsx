@@ -531,7 +531,7 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isRecording, currentQuestionIndex, isFinishing, isSubmitting, isCompleted]);
+  }, [isRecording, currentQuestionIndex, isFinishing, isSubmitting, isCompleted, handleNextQuestion]);
 
   // useEffect para limpiar recursos cuando la entrevista se completa
   useEffect(() => {
@@ -607,7 +607,7 @@ export const InterviewPanel = ({ onShowToast, userId, interviewId }: InterviewPa
         }
       }
     }
-  }, [stream, isRecording]);
+  }, [stream, isRecording, startAudioRecording, startVideoRecording]);
 
   // Resto del componente UI...
   
