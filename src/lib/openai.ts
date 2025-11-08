@@ -57,7 +57,7 @@ Puntos: 5-20 según complejidad
 Responde SOLO con JSON válido:`;
 
     const completion = await openai.chat.completions.create({
-      model: "google/gemma-2-9b-it:free",
+      model: "deepseek/deepseek-v3.1-terminus",
       messages: [
         {
           role: "system",
@@ -154,7 +154,7 @@ Responde SOLO con JSON válido:`;
 export async function testAIConnection(): Promise<{ success: boolean; message: string }> {
   try {
     const completion = await openai.chat.completions.create({
-      model: "google/gemma-2-9b-it:free",
+      model: "deepseek/deepseek-v3.1-terminus",
       messages: [
         {
           role: "user",
@@ -231,7 +231,7 @@ Tiempo: 2-8 minutos, Puntos: 5-20
 Responde SOLO con JSON válido:`;
 
     const completion = await openai.chat.completions.create({
-      model: "google/gemma-2-9b-it:free",
+      model: "deepseek/deepseek-v3.1-terminus",
       messages: [
         {
           role: "system",
